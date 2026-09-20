@@ -1,0 +1,84 @@
+:root {
+	color-scheme: dark;
+	--background: #151a1c;
+	--surface: #202729;
+	--raised: #293235;
+	--text: #e9ebe5;
+	--muted: #b0b8b6;
+	--line: #3e494b;
+	--accent: #e8a364;
+	--danger: #ffb3a9;
+	font-family: "Helvetica Neue", Arial, sans-serif;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	background: var(--background);
+	color: var(--text);
+}
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+	min-width: 320px;
+}
+button,
+input,
+select,
+textarea {
+	font: inherit;
+}
+button,
+a,
+input {
+	touch-action: manipulation;
+}
+button {
+	cursor: pointer;
+}
+button:disabled {
+	cursor: default;
+	opacity: 0.55;
+}
+a {
+	color: inherit;
+	text-decoration: none;
+}
+img {
+	display: block;
+	max-width: 100%;
+}
+h1,
+h2,
+h3,
+p {
+	margin: 0;
+}
+h1,
+h2,
+h3 {
+	font-weight: 500;
+}
+button,
+a,
+input,
+textarea,
+select {
+	-webkit-tap-highlight-color: transparent;
+}
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 4px;
+}
+::selection {
+	background: var(--accent);
+	color: var(--background);
+}
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation: none !important;
+		transition: none !important;
+		scroll-behavior: auto !important;
+	}
+}

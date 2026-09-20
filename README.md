@@ -11,7 +11,7 @@ Personal game ranking app based on Bocabola's Game Spectrum spreadsheet.
 - Drizzle
 - Cloudflare Workers + D1
 - Better Auth
-- PicoCSS + Sass
+- CSS Modules
 
 ## Development
 
@@ -19,6 +19,18 @@ Personal game ranking app based on Bocabola's Game Spectrum spreadsheet.
 bun install
 bun run dev
 ```
+
+## Pages
+
+- `/` — homepage
+- `/login` — Steam, Discord, Twitch, and passkey sign-in
+- `/dashboard` — library and inline rating table
+- `/accounts` — linked providers and passkeys
+- `/accounts/profile` — profile details and visibility
+- `/u/:slug`, `/steam/:thing` — public rating tables
+- `/about` — original spreadsheet explanation
+
+Each rating field has its own table row. Games are columns. Extra % is displayed as a percentage and stored as the spreadsheet multiplier.
 
 ## Required runtime secrets
 

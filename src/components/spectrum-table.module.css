@@ -1,0 +1,266 @@
+.scroll {
+	max-width: 100%;
+	overflow: auto;
+	border: 1px solid var(--line);
+	max-height: calc(100svh - 175px);
+	scrollbar-color: #5b696b var(--background);
+	scrollbar-width: thin;
+}
+.table {
+	border-collapse: separate;
+	border-spacing: 0;
+	min-width: 100%;
+	width: max-content;
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+}
+.table th,
+.table td {
+	border-bottom: 1px solid #303a3c;
+	border-right: 1px solid #303a3c;
+	padding: 0;
+}
+.table tr > :last-child {
+	border-right: 0;
+}
+.table tbody tr:last-child > * {
+	border-bottom: 0;
+}
+.table tbody tr:hover td {
+	background: #222b2d;
+}
+.table th:first-child {
+	position: sticky;
+	left: 0;
+	z-index: 2;
+	width: 235px;
+	min-width: 235px;
+	max-width: 235px;
+	background: var(--background);
+	text-align: left;
+	font-weight: 400;
+	padding: 0 18px;
+}
+.table thead {
+	position: sticky;
+	top: 0;
+	z-index: 3;
+}
+.table thead th {
+	background: var(--surface);
+}
+.table thead .corner {
+	background: var(--surface);
+	vertical-align: bottom;
+	padding-bottom: 20px;
+	color: var(--muted);
+	font-size: 12px;
+}
+.table .game {
+	width: 208px;
+	min-width: 208px;
+	max-width: 208px;
+	vertical-align: top;
+	text-align: left;
+	padding-bottom: 13px;
+}
+.game img {
+	width: 100%;
+	height: 78px;
+	object-fit: cover;
+}
+.game .rank {
+	display: block;
+	font-size: 11px;
+	font-weight: 400;
+	color: var(--muted);
+	padding: 12px 15px 7px;
+}
+.game strong {
+	display: block;
+	font-size: 14px;
+	line-height: 1.4;
+	font-weight: 500;
+	padding: 0 15px;
+	min-height: 39px;
+}
+.game form {
+	padding: 7px 15px 0;
+}
+.save {
+	font-size: 11px;
+	color: var(--accent);
+	border: 1px solid var(--line);
+	background: transparent;
+	padding: 5px 12px;
+	min-height: 29px;
+	border-radius: 2px;
+}
+.save:not(:disabled):hover {
+	background: var(--accent);
+	color: var(--background);
+	border-color: var(--accent);
+}
+.table .score > * {
+	background: #232e31;
+	height: 47px;
+	padding: 12px 18px;
+}
+.score td {
+	text-align: right;
+	font-size: 20px;
+	letter-spacing: -0.5px;
+	color: var(--accent);
+	font-weight: 500;
+}
+.table .score th {
+	background: #232e31;
+}
+.table .group > * {
+	background: var(--surface);
+	height: 40px;
+	font-size: 12px;
+	color: var(--muted);
+	font-weight: 500;
+}
+.table .group th {
+	background: var(--surface);
+}
+.group th span {
+	float: right;
+}
+.total > * {
+	background: var(--surface);
+	height: 40px;
+	font-size: 13px;
+}
+.table .total th {
+	background: var(--surface);
+}
+.total th span {
+	float: right;
+	color: var(--muted);
+}
+.total td {
+	text-align: right;
+	padding-right: 18px;
+}
+.table th:has(details[open]) {
+	z-index: 4;
+}
+.group td {
+	text-align: right;
+	padding-right: 18px;
+}
+.label {
+	display: flex;
+	align-items: center;
+	min-height: 40px;
+	gap: 8px;
+	font-size: 12px;
+}
+.limit {
+	margin-left: auto;
+	font-size: 11px;
+	color: var(--muted);
+}
+.help {
+	position: relative;
+	font-size: 10px;
+}
+.help summary {
+	color: var(--muted);
+	cursor: pointer;
+	list-style: none;
+	padding: 4px;
+}
+.help summary::-webkit-details-marker {
+	display: none;
+}
+.help p {
+	position: absolute;
+	left: -178px;
+	top: 100%;
+	width: 210px;
+	background: var(--raised);
+	border: 1px solid var(--line);
+	padding: 14px;
+	font-size: 12px;
+	line-height: 1.5;
+	font-weight: 400;
+	z-index: 4;
+}
+.table td input[type="number"] {
+	display: block;
+	width: 100%;
+	height: 40px;
+	background: transparent;
+	color: var(--text);
+	border: 1px solid transparent;
+	padding: 8px 18px;
+	text-align: right;
+	border-radius: 0;
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+	appearance: textfield;
+	-moz-appearance: textfield;
+}
+.table td input::-webkit-inner-spin-button,
+.table td input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+.table td input:focus {
+	outline: none;
+	border-color: var(--accent);
+	background: #2b3537;
+}
+.table td input:invalid {
+	border-color: var(--danger);
+}
+.value {
+	display: block;
+	text-align: right;
+	padding: 12px 18px;
+	min-height: 40px;
+}
+.visibility {
+	height: 47px;
+}
+.visibility td {
+	text-align: right;
+	padding-right: 18px;
+}
+.visibility input {
+	width: 18px;
+	height: 18px;
+	accent-color: var(--accent);
+}
+@media (max-width: 700px) {
+	.scroll {
+		max-height: calc(100svh - 130px);
+	}
+	.table th:first-child {
+		width: 175px;
+		min-width: 175px;
+		max-width: 175px;
+		padding-left: 12px;
+		padding-right: 10px;
+	}
+	.label {
+		font-size: 11px;
+		gap: 5px;
+	}
+	.table .game {
+		width: 165px;
+		min-width: 165px;
+		max-width: 165px;
+	}
+	.help p {
+		left: -137px;
+		width: 160px;
+	}
+	.game strong {
+		font-size: 13px;
+	}
+}

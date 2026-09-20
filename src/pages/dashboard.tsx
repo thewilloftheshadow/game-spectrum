@@ -1,411 +1,258 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { type FormEvent, useState } from "react"
-import { apiClient, apiJson } from "~/lib/api-client"
-import { authClient } from "~/lib/auth-client"
-import { ratingFields } from "~/lib/scoring"
+import { useEffect, useState } from "react"
+import { Link } from "react-router"
+import { SpectrumTable, type SpectrumGame } from "~/components/spectrum-table"
+import { apiJson, apiQueryOptions } from "~/lib/api-client"
+import type { gamePayload } from "~/server/api/context"
+import type { z } from "zod"
+import ui from "~/styles/ui.module.css"
+import styles from "./dashboard.module.css"
 
-type GameResult = {
-	title: string
-	source: "steam" | "igdb" | "manual"
-	steamAppId?: number
-	igdbId?: number
-	coverUrl?: string | null
-	releaseYear?: number | null
-}
-
-type Entry = Record<string, unknown> & {
-	id: string
-	title: string
-	coverUrl?: string | null
-	hidden: boolean
-	score: number | null
+export function meta() {
+	return [{ title: "My library | Game Spectrum" }]
 }
 
 export default function DashboardPage() {
 	const queryClient = useQueryClient()
-	const session = authClient.useSession()
 	const [query, setQuery] = useState("")
-	const [profile, setProfile] = useState({
-		bio: "",
-		displayName: "",
-		isPublic: false,
-		slug: "",
-		steamVanity: ""
-	})
-
-	const me = useQuery({
-		queryKey: ["me"],
-		queryFn: () => apiClient<{ data: { profile: typeof profile } }>("me")
-	})
+	const [searchTerm, setSearchTerm] = useState("")
+	const [filter, setFilter] = useState("All")
+	const [page, setPage] = useState(0)
+	const [adding, setAdding] = useState(false)
+	const [find, setFind] = useState("")
+	useEffect(() => {
+		const timer = setTimeout(() => setSearchTerm(query.trim()), 250)
+		return () => clearTimeout(timer)
+	}, [query])
 	const entries = useQuery({
-		queryKey: ["entries"],
-		queryFn: () => apiClient<{ data: Entry[] }>("entries")
+		...apiQueryOptions<{ data: SpectrumGame[] }>(["entries"], "entries"),
+		refetchOnWindowFocus: false
 	})
 	const search = useQuery({
-		enabled: query.trim().length > 1,
-		queryKey: ["game-search", query],
-		queryFn: () =>
-			apiClient<{ data: GameResult[] }>(
-				`games/search?q=${encodeURIComponent(query)}`
-			)
+		...apiQueryOptions<{ data: z.infer<typeof gamePayload>[] }>(
+			["game-search", searchTerm],
+			`games/search?q=${encodeURIComponent(searchTerm)}`
+		),
+		enabled: adding && searchTerm.length >= 2,
+		staleTime: 60_000,
+		retry: false
 	})
-
-	const currentProfile = me.data?.data.profile ?? profile
-	const addGame = useMutation({
-		mutationFn: (game: GameResult) => apiJson("entries", game),
-		onSuccess: () => {
+	const add = useMutation({
+		mutationFn: (game: z.infer<typeof gamePayload>) =>
+			apiJson("entries", game),
+		onSuccess: async () => {
 			setQuery("")
-			queryClient.invalidateQueries({ queryKey: ["entries"] })
+			setFilter("All")
+			setFind("")
+			setPage(0)
+			await queryClient.invalidateQueries({ queryKey: ["entries"] })
 		}
 	})
-	const updateProfile = useMutation({
-		mutationFn: (event: FormEvent<HTMLFormElement>) => {
-			event.preventDefault()
-			return apiJson(
-				"profile",
-				{
-					bio: profile.bio || currentProfile.bio,
-					displayName:
-						profile.displayName || currentProfile.displayName,
-					isPublic: profile.isPublic,
-					slug: profile.slug || currentProfile.slug,
-					steamVanity: profile.steamVanity || null
-				},
-				{ method: "PATCH" }
-			)
-		},
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["me"] })
-	})
-	const importSteam = useMutation({
-		mutationFn: () => apiJson("steam/import", {}),
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: ["entries"] })
-	})
-
-	if (session.isPending || me.isLoading) {
-		return (
-			<main className="container">
-				<p aria-busy="true">Loading your spectrum…</p>
-			</main>
-		)
-	}
-
-	if (!session.data) {
-		return (
-			<main className="container">
-				<h1>Sign in required</h1>
-				<p>
-					Use Discord, Steam, or a passkey before editing your list.
-				</p>
-				<a href="/" role="button">
-					Go sign in
-				</a>
-			</main>
-		)
-	}
-
+	const all = entries.data?.data ?? []
+	const ranked = all
+		.filter((entry) => entry.score !== null && !entry.hidden)
+		.sort((a, b) => b.score! - a.score!)
+	const ranks = Object.fromEntries(
+		ranked.map((entry, index) => [entry.id, index + 1])
+	)
+	const filtered = all.filter(
+		(entry) =>
+			entry.title.toLowerCase().includes(find.toLowerCase()) &&
+			(filter === "All" ||
+				(filter === "Rated" && entry.score !== null && !entry.hidden) ||
+				(filter === "Unrated" && entry.score === null) ||
+				(filter === "Hidden" && entry.hidden))
+	)
+	const totalPages = Math.ceil(filtered.length / 8)
+	const currentPage = Math.min(page, Math.max(0, totalPages - 1))
+	const visible = filtered.slice(currentPage * 8, currentPage * 8 + 8)
 	return (
-		<main className="container">
-			<header>
-				<p>Dashboard</p>
-				<h1>Your Game Spectrum</h1>
-			</header>
-
-			<section className="grid">
-				<article>
-					<h2>Profile</h2>
-					<form onSubmit={(event) => updateProfile.mutate(event)}>
-						<label>
-							Display name
-							<input
-								defaultValue={currentProfile.displayName}
-								onChange={(event) =>
-									setProfile({
-										...profile,
-										displayName: event.target.value
-									})
-								}
-							/>
-						</label>
-						<label>
-							Custom slug
-							<input
-								defaultValue={currentProfile.slug}
-								onChange={(event) =>
-									setProfile({
-										...profile,
-										slug: event.target.value
-									})
-								}
-							/>
-						</label>
-						<label>
-							Steam vanity
-							<input
-								defaultValue={currentProfile.steamVanity ?? ""}
-								onChange={(event) =>
-									setProfile({
-										...profile,
-										steamVanity: event.target.value
-									})
-								}
-							/>
-						</label>
-						<label>
-							Bio
-							<textarea
-								defaultValue={currentProfile.bio}
-								onChange={(event) =>
-									setProfile({
-										...profile,
-										bio: event.target.value
-									})
-								}
-							/>
-						</label>
-						<label>
-							<input
-								defaultChecked={currentProfile.isPublic}
-								type="checkbox"
-								onChange={(event) =>
-									setProfile({
-										...profile,
-										isPublic: event.target.checked
-									})
-								}
-							/>{" "}
-							Public page
-						</label>
-						<button type="submit">Save profile</button>
-					</form>
-					<p>
-						Public URLs: <code>/u/{currentProfile.slug}</code> and{" "}
-						<code>
-							/steam/
-							{currentProfile.steamVanity || "your-steam-id"}
-						</code>
-					</p>
-				</article>
-
-				<article>
-					<h2>Accounts</h2>
-					<div role="group">
-						<button
-							type="button"
-							onClick={() =>
-								authClient.signIn.social({
-									callbackURL: "/dashboard",
-									provider: "discord"
-								})
-							}
-						>
-							Add Discord
-						</button>
-						<button
-							className="secondary"
-							type="button"
-							onClick={() =>
-								authClient.signIn.social({
-									callbackURL: "/dashboard",
-									provider: "twitch"
-								})
-							}
-						>
-							Add Twitch
-						</button>
-						<button
-							className="contrast"
-							type="button"
-							onClick={() =>
-								authClient.steam.link({
-									callbackURL: "/dashboard"
-								})
-							}
-						>
-							Link Steam
-						</button>
-					</div>
-					<div role="group">
-						<button
-							type="button"
-							onClick={() => authClient.passkey.addPasskey()}
-						>
-							Add passkey
-						</button>
-						<button
-							className="contrast"
-							type="button"
-							onClick={() => importSteam.mutate()}
-						>
-							Import Steam library
-						</button>
-					</div>
-					{importSteam.error && <p>{importSteam.error.message}</p>}
-				</article>
-			</section>
-
-			<section>
-				<h2>Add games</h2>
-				<input
-					placeholder="Search Steam, then IGDB, or add missing game"
-					value={query}
-					onChange={(event) => setQuery(event.target.value)}
-				/>
-				{search.data?.data.map((game) => (
-					<div
-						className="search-result"
-						key={`${game.source}-${game.title}`}
+		<main id="main" className={ui.page}>
+			<div className={ui.heading}>
+				<h1 className={ui.title}>My library</h1>
+				<div className={ui.actions}>
+					<Link to="/accounts" className={ui.secondary}>
+						Import Steam library
+					</Link>
+					<button
+						className={ui.button}
+						aria-expanded={adding}
+						aria-controls="add-games"
+						onClick={() => setAdding(!adding)}
 					>
-						{game.coverUrl ? (
-							<img alt="" className="cover" src={game.coverUrl} />
-						) : (
-							<span />
-						)}
-						<div>
-							<strong>{game.title}</strong>
-							<p>
-								{game.source.toUpperCase()}
-								{game.releaseYear
-									? ` · ${game.releaseYear}`
-									: ""}
-							</p>
-						</div>
-						<button
-							type="button"
-							onClick={() => addGame.mutate(game)}
-						>
-							Add
-						</button>
-					</div>
-				))}
-			</section>
-
-			<section>
-				<h2>Ranked list</h2>
-				<DuplicateHints entries={entries.data?.data ?? []} />
-				{entries.data?.data.map((entry, index) => (
-					<GameEntry key={entry.id} entry={entry} index={index} />
-				))}
-			</section>
-		</main>
-	)
-}
-
-function DuplicateHints({ entries }: { entries: Entry[] }) {
-	const duplicateTitles = Object.entries(
-		entries.reduce<Record<string, number>>((counts, entry) => {
-			const key = entry.title.toLowerCase().replace(/[^a-z0-9]+/g, "")
-			counts[key] = (counts[key] ?? 0) + 1
-			return counts
-		}, {})
-	).filter(([, count]) => count > 1)
-
-	if (duplicateTitles.length === 0) {
-		return null
-	}
-
-	return (
-		<article>
-			<strong>Possible duplicates</strong>
-			<p>
-				Some entries have identical normalized names. Review before
-				merging; separate games should stay separate.
-			</p>
-		</article>
-	)
-}
-
-function GameEntry({ entry, index }: { entry: Entry; index: number }) {
-	const queryClient = useQueryClient()
-	const [values, setValues] = useState<Record<string, string>>({})
-	const update = useMutation({
-		mutationFn: () =>
-			apiJson(
-				`entries/${entry.id}`,
-				{
-					...Object.fromEntries(
-						Object.entries(values).map(([key, value]) => [
-							key,
-							value
-						])
-					),
-					hidden: entry.hidden
-				},
-				{ method: "PATCH" }
-			),
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: ["entries"] })
-	})
-	const hide = useMutation({
-		mutationFn: () =>
-			apiJson(
-				`entries/${entry.id}`,
-				{ hidden: !entry.hidden },
-				{ method: "PATCH" }
-			),
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: ["entries"] })
-	})
-
-	return (
-		<article>
-			<div className="game-card">
-				{entry.coverUrl ? (
-					<img alt="" src={entry.coverUrl} />
-				) : (
-					<span className="cover" />
-				)}
-				<div>
-					<header>
-						<p>#{index + 1}</p>
-						<h3>{entry.title}</h3>
-						<p>
-							<span className="score-pill">
-								{entry.score === null ? "Unrated" : entry.score}
-							</span>{" "}
-							{entry.hidden
-								? "Hidden"
-								: "Visible when rated + public"}
-						</p>
-					</header>
-					<div className="field-grid">
-						{ratingFields.map((field) => (
-							<label key={field.key} title={field.description}>
-								{field.group}: {field.label} / {field.max}
-								<input
-									defaultValue={
-										(entry[field.key] as number | null) ??
-										""
-									}
-									max={field.max}
-									min={0}
-									step={0.1}
-									type="number"
-									onChange={(event) =>
-										setValues({
-											...values,
-											[field.key]: event.target.value
-										})
-									}
-								/>
-							</label>
-						))}
-					</div>
-					<div role="group">
-						<button type="button" onClick={() => update.mutate()}>
-							Save scores
-						</button>
-						<button
-							className="secondary"
-							type="button"
-							onClick={() => hide.mutate()}
-						>
-							{entry.hidden ? "Unhide" : "Hide"}
-						</button>
-					</div>
-					{update.error && <p>{update.error.message}</p>}
+						{adding ? "Close search" : "Add game"}
+					</button>
 				</div>
 			</div>
-		</article>
+			{adding && (
+				<section
+					id="add-games"
+					className={styles.add}
+					aria-label="Add game"
+				>
+					<label className={ui.field}>
+						Find a game
+						<input
+							className={ui.input}
+							type="search"
+							autoFocus
+							value={query}
+							onChange={(event) => setQuery(event.target.value)}
+						/>
+					</label>
+					{search.isFetching && (
+						<p className={ui.status} role="status">
+							Searching…
+						</p>
+					)}
+					{search.error && (
+						<p className={ui.error} role="alert">
+							Search unavailable. You can still add a game
+							manually.
+						</p>
+					)}
+					{searchTerm === query.trim() &&
+						search.data?.data
+							.filter((game) => game.source !== "manual")
+							.map((game) => (
+								<div
+									className={styles.result}
+									key={`${game.source}-${game.steamAppId ?? game.igdbId}`}
+								>
+									{game.coverUrl ? (
+										<img
+											src={game.coverUrl}
+											alt=""
+											width={70}
+											height={42}
+										/>
+									) : (
+										<span />
+									)}
+									<div>
+										<strong>{game.title}</strong>
+										<span>
+											{game.source === "steam"
+												? "Steam"
+												: "IGDB"}
+											{game.releaseYear
+												? ` / ${game.releaseYear}`
+												: ""}
+										</span>
+									</div>
+									<button
+										className={ui.secondary}
+										disabled={add.isPending}
+										onClick={() => add.mutate(game)}
+										aria-label={`Add ${game.title}`}
+									>
+										Add
+									</button>
+								</div>
+							))}
+					{query.trim() && (
+						<div className={styles.manual}>
+							<span>{query.trim()}</span>
+							<button
+								className={ui.secondary}
+								disabled={add.isPending}
+								onClick={() =>
+									add.mutate({
+										title: query.trim(),
+										source: "manual"
+									})
+								}
+							>
+								Add manually
+							</button>
+						</div>
+					)}
+					{add.error && (
+						<p className={ui.error} role="alert">
+							{add.error.message}
+						</p>
+					)}
+				</section>
+			)}
+			<div className={styles.toolbar}>
+				<div
+					className={styles.filters}
+					role="group"
+					aria-label="Library filter"
+				>
+					{["All", "Rated", "Unrated", "Hidden"].map((value) => (
+						<button
+							key={value}
+							aria-pressed={filter === value}
+							onClick={() => {
+								setFilter(value)
+								setPage(0)
+							}}
+						>
+							{value}
+						</button>
+					))}
+				</div>
+				<label className={styles.find}>
+					<span className={ui.srOnly}>Search library</span>
+					<input
+						className={ui.input}
+						type="search"
+						placeholder="Search library"
+						value={find}
+						onChange={(event) => {
+							setFind(event.target.value)
+							setPage(0)
+						}}
+					/>
+				</label>
+			</div>
+			{entries.isPending ? (
+				<div
+					className={ui.skeleton}
+					aria-busy="true"
+					aria-label="Loading library"
+				/>
+			) : entries.error ? (
+				<div>
+					<p className={ui.error} role="alert">
+						Unable to load your library.
+					</p>
+					<button
+						className={ui.secondary}
+						onClick={() => entries.refetch()}
+					>
+						Retry
+					</button>
+				</div>
+			) : visible.length ? (
+				<SpectrumTable entries={visible} editable ranks={ranks} />
+			) : (
+				<p className={ui.empty}>
+					{all.length ? "No matching games." : "No games yet."}
+				</p>
+			)}
+			{totalPages > 1 && (
+				<nav className={styles.pagination} aria-label="Library pages">
+					<button
+						className={ui.secondary}
+						disabled={currentPage === 0}
+						onClick={() => setPage(currentPage - 1)}
+					>
+						Previous
+					</button>
+					<span>
+						{currentPage + 1} / {totalPages}
+					</span>
+					<button
+						className={ui.secondary}
+						disabled={currentPage + 1 >= totalPages}
+						onClick={() => setPage(currentPage + 1)}
+					>
+						Next
+					</button>
+				</nav>
+			)}
+		</main>
 	)
 }

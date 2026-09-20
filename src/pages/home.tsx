@@ -1,74 +1,66 @@
+import { useState } from "react"
+import { Link } from "react-router"
 import { authClient } from "~/lib/auth-client"
+import ui from "~/styles/ui.module.css"
+import styles from "./home.module.css"
+
+const games = [
+	{ title: "Outer Wilds", image: "/art/outer-wilds.jpg" },
+	{ title: "Disco Elysium", image: "/art/disco-elysium.jpg" },
+	{ title: "Hollow Knight", image: "/art/hollow-knight.jpg" },
+	{ title: "Celeste", image: "/art/celeste.jpg" }
+]
 
 export default function HomePage() {
+	const [selected, setSelected] = useState(0)
+	const { data: session } = authClient.useSession()
 	return (
-		<main className="container">
-			<section className="grid">
-				<div>
-					<p>Personal rankings, not review scores.</p>
-					<h1>Turn your played games into your own Game Spectrum.</h1>
-					<p>
-						Rate mechanics, visuals, personality, audio, control,
-						penalties, and bonuses. Import Steam, add missing games,
-						then share a clean public page when it is ready.
-					</p>
-					<div role="group">
-						<button
-							type="button"
-							onClick={() =>
-								authClient.signIn.social({
-									callbackURL: "/dashboard",
-									provider: "discord"
-								})
-							}
-						>
-							Continue with Discord
-						</button>
-						<button
-							className="secondary"
-							type="button"
-							onClick={() =>
-								authClient.signIn.social({
-									callbackURL: "/dashboard",
-									provider: "twitch"
-								})
-							}
-						>
-							Continue with Twitch
-						</button>
-						<button
-							className="contrast"
-							type="button"
-							onClick={() =>
-								authClient.steam.login({
-									callbackURL: "/dashboard"
-								})
-							}
-						>
-							Continue with Steam
-						</button>
-					</div>
-					<button
-						className="contrast"
-						type="button"
-						onClick={() => authClient.signIn.passkey({})}
+		<main id="main">
+			<section className={styles.hero}>
+				<img
+					key={games[selected].image}
+					className={styles.art}
+					src={games[selected].image}
+					alt={`${games[selected].title} artwork`}
+					width={1300}
+					height={419}
+					fetchPriority="high"
+				/>
+				<div className={styles.content}>
+					<h1>
+						Game
+						<br />
+						Spectrum
+					</h1>
+					<Link
+						className={ui.button}
+						to={session ? "/dashboard" : "/login"}
 					>
-						Continue with passkey
-					</button>
+						{session ? "My library" : "Create a list"}
+						<span aria-hidden="true">↗</span>
+					</Link>
 				</div>
-				<article>
-					<h2>Score model</h2>
-					<ul>
-						<li>100 points across five main categories.</li>
-						<li>Up to 35 penalty points.</li>
-						<li>
-							Replayability bonus and up to a 1.1 extra
-							multiplier.
-						</li>
-						<li>Incomplete games stay private/unrated.</li>
-					</ul>
-				</article>
+				<span className={styles.caption}>{games[selected].title}</span>
 			</section>
+			<div
+				className={styles.filmstrip}
+				role="group"
+				aria-label="Featured game artwork"
+			>
+				{games.map((game, index) => (
+					<button
+						key={game.title}
+						aria-pressed={selected === index}
+						onClick={() => setSelected(index)}
+					>
+						<img src={game.image} alt="" width={86} height={58} />
+						<span>{game.title}</span>
+					</button>
+				))}
+			</div>
+			<footer className={styles.footer}>
+				<Link to="/about">About Game Spectrum</Link>
+			</footer>
 		</main>
 	)
 }

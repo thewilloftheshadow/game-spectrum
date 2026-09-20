@@ -66,7 +66,18 @@ export const parseScoreBody = (body: Record<string, unknown>) => {
 			values[field.key] = null
 			continue
 		}
-		const value = Math.round(Number(body[field.key]) * 10) / 10
+		const raw = body[field.key]
+		if (typeof raw !== "number" && typeof raw !== "string") {
+			throw new Error(`${field.label} must be a number`)
+		}
+		const value = Number(raw)
+		const precision = field.key === "extraPercent" ? 1000 : 10
+		if (
+			Math.abs(value * precision - Math.round(value * precision)) >
+			0.000001
+		) {
+			throw new Error(`${field.label} has too many decimal places`)
+		}
 		if (!Number.isFinite(value) || value < 0 || value > field.max) {
 			throw new Error(`${field.label} must be between 0 and ${field.max}`)
 		}

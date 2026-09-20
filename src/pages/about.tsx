@@ -1,3 +1,6 @@
+import ui from "~/styles/ui.module.css"
+import styles from "./about.module.css"
+
 const sheetCopy = `The point of this is to create your own list of games and give them scores. The final score has NOTHING with being a "4/10" or "7.5/10", but rather creating a list to rank the games you have played on which is your fav to least fav.
 
 The reason behind this style of ranking is that number on a list for games mean nothing personal. Just because 5 companies rank 1 game a 7/10 might not mean it speaks to YOU. 
@@ -13,9 +16,9 @@ GUIDE
 
 export default function AboutPage() {
 	return (
-		<main className="container">
-			<h1>About Game Spectrum</h1>
-			<article className="about-copy">{sheetCopy}</article>
+		<main id="main" className={`${ui.page} ${ui.narrow}`}>
+			<h1 className={ui.title}>About Game Spectrum</h1>
+			<article className={styles.copy}>{sheetCopy}</article>
 		</main>
 	)
 }

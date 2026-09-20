@@ -28,10 +28,10 @@ entryRoutes.get("/entries", async (c) => {
 				...entry,
 				game,
 				title: game?.title ?? entry.manualTitle ?? "Untitled game",
-				coverUrl: entry.coverUrl ?? game?.coverUrl,
+				coverUrl: entry.coverUrl ?? game?.coverUrl ?? null,
 				score: calculateScore(entry)
 			}))
-			.sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
+			.sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity))
 		return c.json({ data })
 	} catch (error) {
 		return c.json(jsonError((error as Error).message, 401), 401)

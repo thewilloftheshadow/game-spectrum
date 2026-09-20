@@ -126,7 +126,8 @@ export const ratingFields = [
 		label: "Extra %",
 		group: "Bonus",
 		max: 1.1,
-		description: "Sheet multiplier. Use 1 for no extra bonus; max is 1.1."
+		description:
+			"Percentage added to the total after penalties and replayability, up to 10%."
 	}
 ] as const
 
@@ -135,7 +136,8 @@ export const scoreKeys = ratingFields.map((field) => field.key)
 export function calculateScore(entry: Record<string, unknown>) {
 	if (
 		scoreKeys.some(
-			(key) => typeof entry[key] !== "number" || Number.isNaN(entry[key])
+			(key) =>
+				typeof entry[key] !== "number" || !Number.isFinite(entry[key])
 		)
 	) {
 		return null

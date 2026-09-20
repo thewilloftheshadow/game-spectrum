@@ -5,10 +5,18 @@ import { getDb } from "../db"
 import { gameEntries, games, profiles, user } from "../db/schema"
 import { type ApiEnv, jsonError, requiredSecret } from "./context"
 
-const publicProfile = async (env: Cloudflare.Env, userId: string) => {
+export const publicProfile = async (env: Cloudflare.Env, userId: string) => {
 	const db = getDb(env.DB)
 	const profile = await db
-		.select({ profile: profiles, owner: user })
+		.select({
+			profile: {
+				slug: profiles.slug,
+				displayName: profiles.displayName,
+				bio: profiles.bio,
+				favoriteGenres: profiles.favoriteGenres
+			},
+			owner: { image: user.image }
+		})
 		.from(profiles)
 		.innerJoin(user, eq(profiles.userId, user.id))
 		.where(and(eq(profiles.userId, userId), eq(profiles.isPublic, true)))
@@ -25,10 +33,28 @@ const publicProfile = async (env: Cloudflare.Env, userId: string) => {
 		)
 	const entries = rows
 		.map(({ entry, game }) => ({
-			...entry,
-			game,
+			id: entry.id,
+			hidden: entry.hidden,
+			funFeeling: entry.funFeeling,
+			immersive: entry.immersive,
+			variety: entry.variety,
+			artistry: entry.artistry,
+			ui: entry.ui,
+			narrationTheme: entry.narrationTheme,
+			authenticity: entry.authenticity,
+			originality: entry.originality,
+			music: entry.music,
+			effectsVocals: entry.effectsVocals,
+			interfaceScore: entry.interfaceScore,
+			control: entry.control,
+			learningCurve: entry.learningCurve,
+			performancePenalty: entry.performancePenalty,
+			badMomentPenalty: entry.badMomentPenalty,
+			inconsistencyPenalty: entry.inconsistencyPenalty,
+			replayabilityBonus: entry.replayabilityBonus,
+			extraPercent: entry.extraPercent,
 			title: game?.title ?? entry.manualTitle ?? "Untitled game",
-			coverUrl: entry.coverUrl ?? game?.coverUrl,
+			coverUrl: entry.coverUrl ?? game?.coverUrl ?? null,
 			score: calculateScore(entry)
 		}))
 		.filter((entry) => entry.score !== null)
