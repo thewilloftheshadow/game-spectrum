@@ -50,5 +50,8 @@
 	"engines": {
 		"bun": ">=1.4.1"
 	},
-	"packageManager": "bun@1.4.1"
+	"packageManager": "bun@1.4.1",
+	"patchedDependencies": {
+		"better-auth-steam@0.2.3": "patches/better-auth-steam@0.2.3.patch"
+	}
 }
