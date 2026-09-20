@@ -45,12 +45,30 @@ export const requireSession = async (env: Cloudflare.Env, headers: Headers) => {
 		.get()
 
 	if (!existingProfile) {
-		await db.insert(profiles).values({
-			userId: session.user.id,
-			slug: `${slugify(session.user.name)}-${session.user.id.slice(0, 6)}`,
-			displayName: session.user.name,
-			avatarUrl: session.user.image
-		})
+		for (let attempt = 0; attempt < 5; attempt++) {
+			const inserted = await db
+				.insert(profiles)
+				.values({
+					userId: session.user.id,
+					slug: crypto.randomUUID().slice(0, 8),
+					displayName: session.user.name,
+					avatarUrl: session.user.image
+				})
+				.onConflictDoNothing()
+				.returning({ userId: profiles.userId })
+				.get()
+			if (
+				inserted ||
+				(await db
+					.select({ userId: profiles.userId })
+					.from(profiles)
+					.where(eq(profiles.userId, session.user.id))
+					.get())
+			)
+				break
+			if (attempt === 4)
+				throw new Error("Unable to create profile. Please try again.")
+		}
 	}
 
 	return session
@@ -99,24 +117,6 @@ export const saveGame = async (
 	db: ReturnType<typeof getDb>,
 	payload: z.infer<typeof gamePayload>
 ) => {
-	const existing = payload.steamAppId
-		? await db
-				.select()
-				.from(games)
-				.where(eq(games.steamAppId, payload.steamAppId))
-				.get()
-		: payload.igdbId
-			? await db
-					.select()
-					.from(games)
-					.where(eq(games.igdbId, payload.igdbId))
-					.get()
-			: null
-
-	if (existing) {
-		return existing
-	}
-
 	const id = crypto.randomUUID()
 	const row = {
 		id,
@@ -128,6 +128,27 @@ export const saveGame = async (
 		coverUrl: payload.coverUrl ?? null,
 		releaseYear: payload.releaseYear ?? null
 	}
-	await db.insert(games).values(row)
-	return row
+	const identity =
+		payload.steamAppId != null
+			? eq(games.steamAppId, payload.steamAppId)
+			: payload.igdbId != null
+				? eq(games.igdbId, payload.igdbId)
+				: eq(games.id, id)
+	const inserted = await db
+		.insert(games)
+		.values(row)
+		.onConflictDoNothing({
+			target:
+				payload.steamAppId != null
+					? games.steamAppId
+					: payload.igdbId != null
+						? games.igdbId
+						: games.id
+		})
+		.returning()
+		.get()
+	const saved =
+		inserted ?? (await db.select().from(games).where(identity).get())
+	if (!saved) throw new Error("Unable to save game. Please try again.")
+	return saved
 }
