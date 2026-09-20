@@ -17,7 +17,6 @@ export default function DashboardPage() {
 	const [query, setQuery] = useState("")
 	const [searchTerm, setSearchTerm] = useState("")
 	const [filter, setFilter] = useState("All")
-	const [page, setPage] = useState(0)
 	const [adding, setAdding] = useState(false)
 	const [find, setFind] = useState("")
 	useEffect(() => {
@@ -44,7 +43,6 @@ export default function DashboardPage() {
 			setQuery("")
 			setFilter("All")
 			setFind("")
-			setPage(0)
 			await queryClient.invalidateQueries({ queryKey: ["entries"] })
 		}
 	})
@@ -63,9 +61,6 @@ export default function DashboardPage() {
 				(filter === "Unrated" && entry.score === null) ||
 				(filter === "Hidden" && entry.hidden))
 	)
-	const totalPages = Math.ceil(filtered.length / 8)
-	const currentPage = Math.min(page, Math.max(0, totalPages - 1))
-	const visible = filtered.slice(currentPage * 8, currentPage * 8 + 8)
 	return (
 		<main id="main" className={ui.page}>
 			<div className={ui.heading}>
@@ -184,10 +179,7 @@ export default function DashboardPage() {
 						<button
 							key={value}
 							aria-pressed={filter === value}
-							onClick={() => {
-								setFilter(value)
-								setPage(0)
-							}}
+							onClick={() => setFilter(value)}
 						>
 							{value}
 						</button>
@@ -200,10 +192,7 @@ export default function DashboardPage() {
 						type="search"
 						placeholder="Search library"
 						value={find}
-						onChange={(event) => {
-							setFind(event.target.value)
-							setPage(0)
-						}}
+						onChange={(event) => setFind(event.target.value)}
 					/>
 				</label>
 			</div>
@@ -225,33 +214,12 @@ export default function DashboardPage() {
 						Retry
 					</button>
 				</div>
-			) : visible.length ? (
-				<SpectrumTable entries={visible} editable ranks={ranks} />
+			) : filtered.length ? (
+				<SpectrumTable entries={filtered} editable ranks={ranks} />
 			) : (
 				<p className={ui.empty}>
 					{all.length ? "No matching games." : "No games yet."}
 				</p>
-			)}
-			{totalPages > 1 && (
-				<nav className={styles.pagination} aria-label="Library pages">
-					<button
-						className={ui.secondary}
-						disabled={currentPage === 0}
-						onClick={() => setPage(currentPage - 1)}
-					>
-						Previous
-					</button>
-					<span>
-						{currentPage + 1} / {totalPages}
-					</span>
-					<button
-						className={ui.secondary}
-						disabled={currentPage + 1 >= totalPages}
-						onClick={() => setPage(currentPage + 1)}
-					>
-						Next
-					</button>
-				</nav>
 			)}
 		</main>
 	)

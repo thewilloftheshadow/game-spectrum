@@ -131,6 +131,13 @@ export const ratingFields = [
 	}
 ] as const
 
+export const ratingGroups = [
+	...new Set(ratingFields.map((field) => field.group))
+].map((name) => ({
+	name,
+	fields: ratingFields.filter((field) => field.group === name)
+}))
+
 export const scoreKeys = ratingFields.map((field) => field.key)
 
 export function calculateScore(entry: Record<string, unknown>) {

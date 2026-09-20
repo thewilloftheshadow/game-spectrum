@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query"
-import { useState } from "react"
 import { useParams } from "react-router"
 import { SpectrumTable } from "~/components/spectrum-table"
 import { apiQueryOptions } from "~/lib/api-client"
@@ -14,7 +13,6 @@ export default function PublicProfilePage({
 }) {
 	const params = useParams()
 	const id = source === "u" ? params.slug : params.thing
-	const [page, setPage] = useState(0)
 	const profile = useQuery(
 		apiQueryOptions<{
 			data: NonNullable<Awaited<ReturnType<typeof publicProfile>>>
@@ -41,8 +39,6 @@ export default function PublicProfilePage({
 			</main>
 		)
 	const { data } = profile.data
-	const pages = Math.ceil(data.entries.length / 8)
-	const current = Math.min(page, Math.max(0, pages - 1))
 	const ranks = Object.fromEntries(
 		data.entries.map((entry, index) => [entry.id, index + 1])
 	)
@@ -69,33 +65,9 @@ export default function PublicProfilePage({
 				</div>
 			</header>
 			{data.entries.length ? (
-				<SpectrumTable
-					entries={data.entries.slice(current * 8, current * 8 + 8)}
-					ranks={ranks}
-				/>
+				<SpectrumTable entries={data.entries} ranks={ranks} />
 			) : (
 				<p className={ui.empty}>No rated games.</p>
-			)}
-			{pages > 1 && (
-				<nav className={styles.pagination} aria-label="Profile pages">
-					<button
-						className={ui.secondary}
-						disabled={current === 0}
-						onClick={() => setPage(current - 1)}
-					>
-						Previous
-					</button>
-					<span>
-						{current + 1} / {pages}
-					</span>
-					<button
-						className={ui.secondary}
-						disabled={current + 1 >= pages}
-						onClick={() => setPage(current + 1)}
-					>
-						Next
-					</button>
-				</nav>
 			)}
 		</main>
 	)
