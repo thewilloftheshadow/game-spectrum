@@ -1,0 +1,23 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": [],
+	"categories": {
+		"correctness": "error"
+	},
+	"rules": {
+		"no-unused-vars": [
+			"error",
+			{
+				"argsIgnorePattern": "^_",
+				"caughtErrorsIgnorePattern": "^_",
+				"varsIgnorePattern": "^_",
+				"ignoreRestSiblings": true
+			}
+		]
+	},
+	"env": {
+		"builtin": true,
+		"browser": true,
+		"node": true
+	}
+}

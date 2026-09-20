@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+build/
+dist/
+.react-router/
+.vite/
+
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# TypeScript / generated types
+*.tsbuildinfo
+worker-configuration.d.ts
+
+# Logs
+*.log
+logs/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
