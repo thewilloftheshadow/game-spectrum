@@ -8,7 +8,8 @@ import {
 	Outlet,
 	Scripts,
 	ScrollRestoration,
-	useRouteError
+	useRouteError,
+	useLocation
 } from "react-router"
 import { SiteNav } from "~/components/site-nav"
 import ui from "~/styles/ui.module.css"
@@ -23,6 +24,7 @@ export function meta() {
 
 export default function Root() {
 	const [queryClient] = useState(() => new QueryClient())
+	const { pathname } = useLocation()
 	return (
 		<html lang="en">
 			<head>
@@ -36,7 +38,9 @@ export default function Root() {
 			</head>
 			<body>
 				<QueryClientProvider client={queryClient}>
-					<SiteNav />
+					{pathname.replace(/\/+$/, "") !== "/dashboard" && (
+						<SiteNav />
+					)}
 					<Outlet />
 				</QueryClientProvider>
 				<ScrollRestoration />

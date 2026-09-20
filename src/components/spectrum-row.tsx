@@ -1,6 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Fragment, memo, useId } from "react"
-import { apiJson } from "~/lib/api-client"
+import { Fragment, memo } from "react"
 import { calculateScore, ratingFields, ratingGroups } from "~/lib/scoring"
 import type { SpectrumGame } from "./spectrum-table"
 import styles from "./spectrum-table.module.css"
@@ -13,7 +11,8 @@ export const SpectrumRow = memo(function SpectrumRow({
 	hidden,
 	onScoreChange,
 	onVisibilityChange,
-	onSaved
+	formId,
+	disabled
 }: {
 	entry: SpectrumGame
 	editable: boolean
@@ -26,10 +25,9 @@ export const SpectrumRow = memo(function SpectrumRow({
 		value: string
 	) => void
 	onVisibilityChange: (id: string, hidden: boolean) => void
-	onSaved: (id: string) => void
+	formId: string
+	disabled: boolean
 }) {
-	const formId = useId()
-	const queryClient = useQueryClient()
 	const values = Object.fromEntries(
 		ratingFields.map((field) => {
 			const value = draft[field.key]
@@ -47,19 +45,6 @@ export const SpectrumRow = memo(function SpectrumRow({
 		})
 	)
 	const score = calculateScore(values)
-	const dirty = Object.keys(draft).length > 0 || hidden !== undefined
-	const save = useMutation({
-		mutationFn: () =>
-			apiJson(
-				`entries/${entry.id}`,
-				{ ...values, hidden: hidden ?? entry.hidden },
-				{ method: "PATCH" }
-			),
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["entries"] })
-			onSaved(entry.id)
-		}
-	})
 	return (
 		<tr>
 			<th scope="row" className={styles.game}>
@@ -88,32 +73,9 @@ export const SpectrumRow = memo(function SpectrumRow({
 									.filter(Boolean)
 									.join(" / ")}
 							</span>
-							{editable && (
-								<form
-									id={formId}
-									onSubmit={(event) => {
-										event.preventDefault()
-										save.mutate()
-									}}
-								>
-									<button
-										className={styles.save}
-										disabled={!dirty || save.isPending}
-										type="submit"
-										aria-label={`Save ${entry.title} ratings`}
-									>
-										{save.isPending ? "Saving…" : "Save"}
-									</button>
-								</form>
-							)}
 						</div>
 					</div>
 				</div>
-				{save.error && (
-					<p className={styles.error} role="alert">
-						{save.error.message}
-					</p>
-				)}
 			</th>
 			<td className={styles.score}>
 				{score === null ? "Unrated" : score.toFixed(1)}
@@ -146,7 +108,7 @@ export const SpectrumRow = memo(function SpectrumRow({
 										}
 										step="0.1"
 										value={value}
-										disabled={save.isPending}
+										disabled={disabled}
 										onChange={(event) =>
 											onScoreChange(
 												entry.id,
@@ -205,7 +167,7 @@ export const SpectrumRow = memo(function SpectrumRow({
 						type="checkbox"
 						checked={hidden ?? entry.hidden}
 						aria-label={`Hide ${entry.title}`}
-						disabled={save.isPending}
+						disabled={disabled}
 						onChange={(event) =>
 							onVisibilityChange(entry.id, event.target.checked)
 						}
