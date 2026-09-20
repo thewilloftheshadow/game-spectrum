@@ -31,7 +31,9 @@ bun run dev
 - `/u/:slug`, `/steam/:thing` — public rating tables
 - `/about` — original spreadsheet explanation
 
-Each rating field has its own table row. Games are columns. Extra % is displayed as a percentage and stored as the spreadsheet multiplier.
+Games are rows, with all rating fields grouped into columns across the top. Library and public profile tables show one unpaginated sheet with sticky game names and headers. Scrolling beyond the sheet’s vertical bounds continues scrolling the page. Extra % is displayed as a percentage and stored as the spreadsheet multiplier.
+
+Game search ranks normalized exact title matches ahead of partial matches across providers. Steam remains first when relevance is tied.
 
 Steam imports run in batches of up to 100 games per request. Progress persists across in-app navigation while the tab stays open. Repeating an import keeps existing ratings and visibility, and skips games already in the library. Account connections display provider names/emails when available, with account IDs as a fallback.
 

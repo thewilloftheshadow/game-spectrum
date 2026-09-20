@@ -66,10 +66,38 @@ gameRoutes.get("/search", async (c) => {
 		)
 		.catch(() => [])
 
+	const results = [...steam, ...igdb].filter(
+		(game) => typeof game.title === "string"
+	)
+	const [normalizedQuery, ...titles] = [
+		query,
+		...results.map((game) => game.title)
+	].map((title) =>
+		title
+			.replace(/[™®]/g, "")
+			.normalize("NFKD")
+			.replace(/\p{M}/gu, "")
+			.toLowerCase()
+			.replace(/[^\p{L}\p{N}]+/gu, " ")
+			.trim()
+	)
+	const ranked = results
+		.map((game, index) => ({
+			game,
+			relevance:
+				titles[index] === normalizedQuery
+					? 0
+					: titles[index].startsWith(normalizedQuery)
+						? 1
+						: titles[index].includes(normalizedQuery)
+							? 2
+							: 3
+		}))
+		.sort((a, b) => a.relevance - b.relevance)
+
 	return c.json({
 		data: [
-			...steam,
-			...igdb,
+			...ranked.map(({ game }) => game),
 			{ title: query, source: "manual", coverUrl: null }
 		]
 	})
