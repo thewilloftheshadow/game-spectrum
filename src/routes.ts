@@ -11,6 +11,7 @@ export default [
 	route("about", "pages/about.tsx"),
 	layout("pages/account-layout.tsx", [
 		route("dashboard", "pages/dashboard.tsx"),
+		route("import", "pages/import.tsx"),
 		route("accounts", "pages/accounts.tsx"),
 		route("accounts/profile", "pages/profile-settings.tsx")
 	]),

@@ -24,7 +24,7 @@
 }
 .providers button {
 	display: flex;
-	justify-content: space-between;
+	align-items: center;
 	gap: 15px;
 	width: 100%;
 	text-align: left;
@@ -40,6 +40,9 @@
 .providers button:hover:not(:disabled) {
 	background: var(--raised);
 	border-color: var(--muted);
+}
+.pending {
+	margin-left: auto;
 }
 .back {
 	font-size: 12px;

@@ -25,12 +25,17 @@ bun run dev
 - `/` — homepage
 - `/login` — Steam, Discord, Twitch, and passkey sign-in
 - `/dashboard` — library and inline rating table
+- `/import` — asynchronous Steam import with batch progress; default destination after Steam sign-in
 - `/accounts` — linked providers and passkeys
 - `/accounts/profile` — profile details and visibility
 - `/u/:slug`, `/steam/:thing` — public rating tables
 - `/about` — original spreadsheet explanation
 
 Each rating field has its own table row. Games are columns. Extra % is displayed as a percentage and stored as the spreadsheet multiplier.
+
+Steam imports run in batches of up to 100 games per request. Progress persists across in-app navigation while the tab stays open. Repeating an import keeps existing ratings and visibility, and skips games already in the library. Account connections display provider names/emails when available, with account IDs as a fallback.
+
+New profiles default to a random eight-character slug. Existing profile URLs are preserved.
 
 ## Required runtime secrets
 

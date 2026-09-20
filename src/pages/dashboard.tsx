@@ -71,7 +71,7 @@ export default function DashboardPage() {
 			<div className={ui.heading}>
 				<h1 className={ui.title}>My library</h1>
 				<div className={ui.actions}>
-					<Link to="/accounts" className={ui.secondary}>
+					<Link to="/import" className={ui.secondary}>
 						Import Steam library
 					</Link>
 					<button

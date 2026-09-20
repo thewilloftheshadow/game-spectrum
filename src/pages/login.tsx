@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link, Navigate, useSearchParams } from "react-router"
 import { authClient } from "~/lib/auth-client"
+import { PlatformIcon } from "~/components/platform-icon"
 import ui from "~/styles/ui.module.css"
 import styles from "./login.module.css"
 
@@ -13,7 +14,9 @@ export default function LoginPage() {
 	const [params] = useSearchParams()
 	const requested = params.get("next")
 	const next =
-		requested === "/accounts" || requested === "/accounts/profile"
+		requested === "/accounts" ||
+		requested === "/accounts/profile" ||
+		requested === "/import"
 			? requested
 			: "/dashboard"
 	const [pending, setPending] = useState<string | null>(null)
@@ -37,7 +40,7 @@ export default function LoginPage() {
 										const result =
 											provider === "steam"
 												? await authClient.steam.login({
-														callbackURL: next,
+														callbackURL: "/import",
 														errorCallbackURL:
 															"/login"
 													})
@@ -69,15 +72,22 @@ export default function LoginPage() {
 										setPending(null)
 									}
 								}}
+								aria-busy={pending === provider}
 							>
+								<PlatformIcon provider={provider} />
 								<span>
 									{provider === "passkey"
 										? "Use a passkey"
 										: `Continue with ${provider === "steam" ? "Steam" : provider === "discord" ? "Discord" : "Twitch"}`}
 								</span>
-								<span aria-hidden="true">
-									{pending === provider ? "…" : "↗"}
-								</span>
+								{pending === provider && (
+									<span
+										className={styles.pending}
+										aria-hidden="true"
+									>
+										…
+									</span>
+								)}
 							</button>
 						)
 					)}

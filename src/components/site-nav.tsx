@@ -17,7 +17,7 @@ export function SiteNav() {
 				game<span>spectrum</span>
 			</Link>
 			<nav className={styles.nav} aria-label="Main navigation">
-				<NavLink to="/dashboard">My library</NavLink>
+				<NavLink to="/dashboard">My Library</NavLink>
 				<NavLink to="/about">About</NavLink>
 				{session ? (
 					<NavLink to="/accounts" className={styles.account}>
