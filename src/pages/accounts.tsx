@@ -1,8 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
-import { NavLink, useSearchParams } from "react-router"
+import { Link, NavLink, useSearchParams } from "react-router"
+import { PlatformIcon } from "~/components/platform-icon"
+import type { getConnectedAccounts } from "~/server/api/accounts"
 import { authClient } from "~/lib/auth-client"
-import { apiJson } from "~/lib/api-client"
+import { apiQueryOptions } from "~/lib/api-client"
+import styles from "./accounts.module.css"
 import ui from "~/styles/ui.module.css"
 
 export function meta() {
@@ -16,15 +19,10 @@ export default function AccountsPage() {
 	const [error, setError] = useState("")
 	const [confirmRemove, setConfirmRemove] = useState<string | null>(null)
 	const accounts = useQuery({
-		queryKey: ["accounts"],
-		queryFn: async () => {
-			const result = await authClient.listAccounts()
-			if (result.error)
-				throw new Error(
-					result.error.message || "Unable to load connected accounts."
-				)
-			return result.data
-		}
+		...apiQueryOptions<{
+			data: Awaited<ReturnType<typeof getConnectedAccounts>>
+		}>(["accounts"], "accounts"),
+		staleTime: 60_000
 	})
 	const passkeys = useQuery({
 		queryKey: ["passkeys"],
@@ -36,12 +34,6 @@ export default function AccountsPage() {
 				)
 			return result.data
 		}
-	})
-	const importSteam = useMutation({
-		mutationFn: () =>
-			apiJson<{ data: { imported: number } }>("steam/import", {}),
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: ["entries"] })
 	})
 	return (
 		<main id="main" className={`${ui.page} ${ui.narrow}`}>
@@ -93,7 +85,7 @@ export default function AccountsPage() {
 				</p>
 			)}
 			{(["steam", "discord", "twitch"] as const).map((provider) => {
-				const linked = accounts.data?.some(
+				const linked = accounts.data?.data.find(
 					(account) => account.providerId === provider
 				)
 				const name =
@@ -104,17 +96,33 @@ export default function AccountsPage() {
 							: "Twitch"
 				return (
 					<section className={ui.row} key={provider}>
-						<div>
-							<h2>{name}</h2>
-							<p>
-								{accounts.isPending
-									? "Loading…"
-									: linked
-										? "Connected"
-										: accounts.error
-											? "Unavailable"
-											: "Not connected"}
-							</p>
+						<div className={styles.identity}>
+							<PlatformIcon provider={provider} />
+							<div>
+								<h2>{name}</h2>
+								{linked ? (
+									<>
+										{linked.details?.name && (
+											<p>{linked.details.name}</p>
+										)}
+										<p>
+											{linked.details?.email ||
+												`${provider === "steam" ? "Steam ID" : "Account ID"}: ${linked.accountId}`}
+										</p>
+										{!linked.details && (
+											<p>Profile details unavailable.</p>
+										)}
+									</>
+								) : (
+									<p>
+										{accounts.isPending
+											? "Loading…"
+											: accounts.error
+												? "Unavailable"
+												: "Not connected"}
+									</p>
+								)}
+							</div>
 						</div>
 						{!linked ? (
 							<button
@@ -164,29 +172,13 @@ export default function AccountsPage() {
 									: `Connect ${name}`}
 							</button>
 						) : provider === "steam" ? (
-							<button
-								className={ui.secondary}
-								disabled={importSteam.isPending}
-								onClick={() => importSteam.mutate()}
-							>
-								{importSteam.isPending
-									? "Importing…"
-									: "Import library"}
-							</button>
+							<Link to="/import" className={ui.secondary}>
+								Import library
+							</Link>
 						) : null}
 					</section>
 				)
 			})}
-			{importSteam.error && (
-				<p className={ui.error} role="alert">
-					{importSteam.error.message}
-				</p>
-			)}
-			{importSteam.data && (
-				<p className={ui.status} role="status">
-					{importSteam.data.data.imported} games imported.
-				</p>
-			)}
 			<section className={ui.section}>
 				<div className={ui.heading}>
 					<h2>Passkeys</h2>
@@ -288,7 +280,7 @@ export default function AccountsPage() {
 									<button
 										className={ui.quiet}
 										disabled={
-											!accounts.data?.length &&
+											!accounts.data?.data.length &&
 											(passkeys.data?.length ?? 0) < 2
 										}
 										onClick={() => setConfirmRemove(key.id)}

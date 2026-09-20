@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { getAuth } from "./auth"
 import { entryRoutes } from "./api/entries"
+import { accountRoutes } from "./api/accounts"
 import { gameRoutes } from "./api/games"
 import { type ApiEnv } from "./api/context"
 import { profileRoutes } from "./api/profile"
@@ -12,6 +13,7 @@ export const api = new Hono<ApiEnv>()
 api.all("/api/auth/*", (c) => getAuth(c.env).handler(c.req.raw))
 api.get("/api", (c) => c.json({ data: { ok: true } }))
 api.route("/api", profileRoutes)
+api.route("/api", accountRoutes)
 api.route("/api", entryRoutes)
 api.route("/api/games", gameRoutes)
 api.route("/api/steam", steamRoutes)

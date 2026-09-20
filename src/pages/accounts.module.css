@@ -1,0 +1,16 @@
+.identity {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+	min-width: 0;
+}
+.identity > img {
+	margin-top: 1px;
+}
+.identity > div {
+	min-width: 0;
+}
+.identity p {
+	overflow-wrap: anywhere;
+	line-height: 1.6;
+}
