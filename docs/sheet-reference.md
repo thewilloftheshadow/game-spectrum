@@ -40,6 +40,8 @@ Main categories:
 
 ## Far-right note exact wording
 
+The CSV and XLSX exports agree: cell `AD5` contains 1,410 characters and ends with an unfinished `- ` bullet. The About page preserves that complete cell verbatim and displays the category breakdown and scoring guide separately.
+
 ```txt
 The point of this is to create your own list of games and give them scores. The final score has NOTHING with being a "4/10" or "7.5/10", but rather creating a list to rank the games you have played on which is your fav to least fav.
 

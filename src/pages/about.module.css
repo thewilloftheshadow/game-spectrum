@@ -7,3 +7,46 @@
 	max-width: 680px;
 	margin-top: 35px;
 }
+.source {
+	display: inline-block;
+	margin-top: 24px;
+	font-size: 13px;
+	color: var(--accent);
+}
+.scoring {
+	margin-top: 48px;
+	max-width: 680px;
+}
+.scoring h2 {
+	font-size: 28px;
+	letter-spacing: -0.7px;
+	margin-bottom: 30px;
+}
+.scoring h3 {
+	font-size: 17px;
+	margin: 30px 0 16px;
+}
+.scoring dl > div {
+	padding: 15px 0;
+	border-bottom: 1px solid var(--line);
+}
+.scoring dt {
+	display: flex;
+	justify-content: space-between;
+	gap: 20px;
+	font-size: 14px;
+}
+.scoring dt span {
+	font-variant-numeric: tabular-nums;
+	color: var(--accent);
+}
+.scoring dd,
+.scoring p {
+	color: var(--muted);
+	font-size: 14px;
+	line-height: 1.7;
+	margin-top: 10px;
+}
+.scoring .formula {
+	color: var(--text);
+}

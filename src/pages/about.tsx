@@ -1,3 +1,4 @@
+import { ratingFields } from "~/lib/scoring"
 import ui from "~/styles/ui.module.css"
 import styles from "./about.module.css"
 
@@ -19,6 +20,65 @@ export default function AboutPage() {
 		<main id="main" className={`${ui.page} ${ui.narrow}`}>
 			<h1 className={ui.title}>About Game Spectrum</h1>
 			<article className={styles.copy}>{sheetCopy}</article>
+			<a
+				className={styles.source}
+				href="https://docs.google.com/spreadsheets/d/1MugtKKstOsAb4GIhY6PnukJuGBZXb0C7dQjnZiFgrT0/edit"
+				target="_blank"
+				rel="noreferrer"
+			>
+				Original spreadsheet ↗
+			</a>
+			<section className={styles.scoring} aria-labelledby="scoring-title">
+				<h2 id="scoring-title">Scoring</h2>
+				{[...new Set(ratingFields.map((field) => field.group))].map(
+					(group) => {
+						const fields = ratingFields.filter(
+							(field) => field.group === group
+						)
+						return (
+							<section key={group}>
+								<h3>
+									{group}
+									{group === "Bonus"
+										? ""
+										: ` / ${fields.reduce((sum, field) => sum + field.max, 0)}`}
+								</h3>
+								<dl>
+									{fields.map((field) => (
+										<div key={field.key}>
+											<dt>
+												{field.label}
+												<span>
+													{field.key ===
+													"extraPercent"
+														? "10%"
+														: field.max}
+												</span>
+											</dt>
+											<dd>{field.description}</dd>
+										</div>
+									))}
+								</dl>
+							</section>
+						)
+					}
+				)}
+				<h3>Final score</h3>
+				<p className={styles.formula}>
+					(Base − Penalties + Replayability) × (1 + Extra % ÷ 100)
+				</p>
+				<p>
+					Base categories total 100 points. Penalties subtract up to
+					35 points. Replayability adds up to 10 points; Extra %
+					increases the result by up to 10%. Use 0% for no extra
+					bonus.
+				</p>
+				<p>
+					Scores accept one decimal place. A game stays unrated until
+					every field is filled, including zero penalties and bonuses.
+					Hidden and unrated games do not appear on public profiles.
+				</p>
+			</section>
 		</main>
 	)
 }
