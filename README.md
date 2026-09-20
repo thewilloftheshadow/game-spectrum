@@ -64,7 +64,11 @@ bun run db:migrate:local
 bun run db:migrate:remote
 ```
 
-`bun run deploy` runs `bun run build`, applies remote D1 migrations, then runs `wrangler deploy`.
+## Deployment
+
+Pushing to `main` automatically triggers production deployment. No separate manual deploy is needed. A successful push confirms deployment was triggered, not that deployment has finished successfully; verify deployment status before reporting success.
+
+For an explicitly requested manual deployment, `bun run deploy` runs `bun run build`, applies remote D1 migrations, then runs `wrangler deploy`.
 
 ## Verification
 
