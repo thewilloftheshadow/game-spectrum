@@ -25,6 +25,9 @@ worker-configuration.d.ts
 *.log
 logs/
 
+# Local Pi agent state
+.pi/
+
 # OS / editor
 .DS_Store
 .idea/

@@ -1,0 +1,89 @@
+@use "@picocss/pico/scss/pico" with (
+	$theme-color: "jade",
+	$enable-semantic-container: true,
+	$enable-classes: true
+);
+
+:root {
+	--gs-muted-border: color-mix(
+		in oklab,
+		var(--pico-muted-border-color),
+		transparent 15%
+	);
+}
+
+body {
+	min-height: 100vh;
+}
+
+body > div,
+#root {
+	min-height: 100vh;
+}
+
+.site-shell {
+	min-height: 100vh;
+}
+
+.site-nav {
+	border-bottom: 1px solid var(--gs-muted-border);
+	margin-bottom: 2rem;
+}
+
+.grid-tight {
+	gap: 1rem;
+}
+
+.game-card {
+	align-items: stretch;
+	display: grid;
+	gap: 1rem;
+	grid-template-columns: 96px 1fr;
+}
+
+.game-card img,
+.cover {
+	aspect-ratio: 16 / 9;
+	background: var(--pico-muted-border-color);
+	border-radius: var(--pico-border-radius);
+	object-fit: cover;
+	width: 100%;
+}
+
+.score-pill {
+	border: 1px solid var(--gs-muted-border);
+	border-radius: 999px;
+	display: inline-flex;
+	font-variant-numeric: tabular-nums;
+	padding: 0.15rem 0.6rem;
+}
+
+.field-grid {
+	display: grid;
+	gap: 0.8rem;
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.field-grid label {
+	margin-bottom: 0;
+}
+
+.search-result {
+	align-items: center;
+	border-bottom: 1px solid var(--gs-muted-border);
+	display: grid;
+	gap: 0.8rem;
+	grid-template-columns: 64px 1fr auto;
+	padding: 0.7rem 0;
+}
+
+.about-copy {
+	white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+	.game-card,
+	.search-result {
+		grid-template-columns: 1fr;
+	}
+}

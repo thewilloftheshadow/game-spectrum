@@ -1,17 +1,27 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
-	"name": "site-template",
+	"name": "game-spectrum",
 	"main": "./src/worker.ts",
+	"account_id": "07c634e5b9f9eb260972946dc8e2f891",
 	"compatibility_date": "2026-07-27",
 	"compatibility_flags": ["nodejs_compat"],
 	"observability": {
 		"enabled": true
 	},
+	"routes": [
+		{
+			"pattern": "www.gamespectrum.org",
+			"custom_domain": true
+		}
+	],
+	"vars": {
+		"BETTER_AUTH_URL": "https://www.gamespectrum.org"
+	},
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "site-template",
-			"database_id": "00000000-0000-0000-0000-000000000000",
+			"database_name": "game-spectrum",
+			"database_id": "383eca4b-9e4a-461f-bc1e-2be50fa5d7b7",
 			"migrations_dir": "drizzle/migrations"
 		}
 	]

@@ -1,5 +1,5 @@
 {
-	"name": "@buape/site-template",
+	"name": "game-spectrum",
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
@@ -14,24 +14,30 @@
 		"lint:check": "oxlint .",
 		"format:check": "oxfmt --check .",
 		"typecheck": "tsc --noEmit",
-		"deploy": "bun run build && wrangler deploy",
+		"deploy": "bun run build && bun run db:migrate:remote && wrangler deploy",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate:local": "wrangler d1 migrations apply DATABASE_NAME --local",
-		"db:migrate:remote": "wrangler d1 migrations apply DATABASE_NAME --remote"
+		"db:migrate:local": "wrangler d1 migrations apply game-spectrum --local",
+		"db:migrate:remote": "wrangler d1 migrations apply game-spectrum --remote"
 	},
 	"dependencies": {
+		"@better-auth/drizzle-adapter": "1.7.5",
+		"@better-auth/passkey": "1.7.5",
+		"@picocss/pico": "2.1.1",
 		"@tanstack/react-query": "5.102.8",
+		"better-auth": "1.7.5",
+		"better-auth-steam": "0.2.3",
 		"drizzle-orm": "0.45.2",
 		"hono": "4.13.0",
 		"isbot": "5.2.2",
 		"react": "19.1.0",
 		"react-dom": "19.1.0",
-		"react-router": "8.3.0"
+		"react-router": "8.3.0",
+		"sass": "1.104.1",
+		"zod": "4.6.5"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "1.47.0",
 		"@react-router/dev": "8.3.0",
-		"@tailwindcss/postcss": "4",
 		"@types/node": "24",
 		"@types/react": "19",
 		"@types/react-dom": "19",
@@ -39,7 +45,6 @@
 		"lefthook": "2.1.12",
 		"oxfmt": "0.66.0",
 		"oxlint": "1.81.0",
-		"tailwindcss": "4",
 		"typescript": "5",
 		"vite": "8.1.5",
 		"wrangler": "4.114.0"

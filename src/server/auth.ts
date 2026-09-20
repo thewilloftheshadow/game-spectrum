@@ -1,0 +1,57 @@
+import { passkey } from "@better-auth/passkey"
+import { drizzleAdapter } from "@better-auth/drizzle-adapter"
+import { betterAuth } from "better-auth"
+import { admin } from "better-auth/plugins"
+import { steamOpenID } from "better-auth-steam"
+import { getDb } from "./db"
+import * as schema from "./db/schema"
+
+const secret = (env: Cloudflare.Env, name: string) =>
+	(env as unknown as Record<string, string | undefined>)[name]
+
+const requiredSecret = (env: Cloudflare.Env, name: string) => {
+	const value = secret(env, name)
+	if (!value) {
+		throw new Error(`${name} is required`)
+	}
+	return value
+}
+
+export const authBaseURL = "https://www.gamespectrum.org"
+
+export function getAuth(env: Cloudflare.Env) {
+	return betterAuth({
+		baseURL: secret(env, "BETTER_AUTH_URL") ?? authBaseURL,
+		secret: requiredSecret(env, "BETTER_AUTH_SECRET"),
+		trustedOrigins: [authBaseURL, "http://localhost:5173"],
+		database: drizzleAdapter(getDb(env.DB), {
+			provider: "sqlite",
+			schema
+		}),
+		socialProviders: {
+			discord: {
+				clientId: requiredSecret(env, "DISCORD_CLIENT_ID"),
+				clientSecret: requiredSecret(env, "DISCORD_CLIENT_SECRET")
+			},
+			twitch: {
+				clientId: requiredSecret(env, "TWITCH_CLIENT_ID"),
+				clientSecret: requiredSecret(env, "TWITCH_CLIENT_SECRET")
+			}
+		},
+		account: {
+			accountLinking: {
+				enabled: true,
+				trustedProviders: ["discord", "steam", "twitch"],
+				allowDifferentEmails: true
+			}
+		},
+		plugins: [
+			admin(),
+			passkey(),
+			steamOpenID({
+				apiKey: requiredSecret(env, "STEAM_API_KEY"),
+				syntheticEmailDomain: "gamespectrum.org"
+			})
+		]
+	})
+}
