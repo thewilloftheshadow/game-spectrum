@@ -1,5 +1,6 @@
 import { createRequestHandler } from "react-router"
 import { api } from "~/server/api"
+import { syncDueSteamPlaytime } from "~/server/steam"
 
 const requestHandler = createRequestHandler(
 	() => import("virtual:react-router/server-build"),
@@ -7,6 +8,9 @@ const requestHandler = createRequestHandler(
 )
 
 export default {
+	async scheduled(_event, env, ctx) {
+		ctx.waitUntil(syncDueSteamPlaytime(env))
+	},
 	async fetch(request, env, ctx) {
 		const pathname = new URL(request.url).pathname
 
@@ -14,7 +18,7 @@ export default {
 			return api.fetch(request, env, ctx)
 		}
 
-		const publicMatch = pathname.match(/^\/(u|steam)\/([^/]+)$/)
+		const publicMatch = pathname.match(/^\/(u|steam)\/([^/]+)\/?$/)
 		if (publicMatch) {
 			const checkURL = new URL(request.url)
 			checkURL.pathname = `/api/public/${publicMatch[1]}/${publicMatch[2]}`
@@ -23,11 +27,19 @@ export default {
 				env,
 				ctx
 			)
-			if (check.status === 404) {
-				return new Response("not found", { status: 404 })
+			if (!check.ok) {
+				return new Response(
+					check.status === 404 ? "not found" : "Profile unavailable",
+					{
+						status: check.status === 404 ? 404 : 503,
+						headers: { "Cache-Control": "no-store" }
+					}
+				)
 			}
 		}
 
-		return requestHandler(request)
+		const response = await requestHandler(request)
+		if (publicMatch) response.headers.set("Cache-Control", "no-store")
+		return response
 	}
 } satisfies ExportedHandler<Cloudflare.Env>

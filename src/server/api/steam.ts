@@ -1,16 +1,46 @@
 import { Hono } from "hono"
 import { z } from "zod"
 import { getDb } from "../db"
-import { games } from "../db/schema"
+import { eq } from "drizzle-orm"
+import { games, profiles } from "../db/schema"
 import {
-	type ApiEnv,
-	jsonError,
-	requiredSecret,
-	requireSession,
-	slugify
-} from "./context"
+	getOwnedSteamGames,
+	prepareSteamPlaytimeUpdate,
+	syncSteamPlaytime
+} from "../steam"
+import { type ApiEnv, jsonError, requireSession, slugify } from "./context"
 
 export const steamRoutes = new Hono<ApiEnv>()
+
+steamRoutes.post("/playtime/sync", async (c) => {
+	try {
+		const session = await requireSession(c.env, c.req.raw.headers)
+		if (!session.user.steamId)
+			return c.json(jsonError("Link Steam before syncing playtime."), 400)
+		return c.json({
+			data: await syncSteamPlaytime(
+				c.env,
+				session.user.id,
+				session.user.steamId
+			)
+		})
+	} catch (error) {
+		const unauthorized =
+			error instanceof Error && error.message === "Sign in required"
+		return c.json(
+			jsonError(
+				unauthorized
+					? "Sign in required"
+					: error instanceof Error &&
+						  /^(Steam |A sync)/.test(error.message)
+						? error.message
+						: "Unable to sync playtime. Your saved hours are unchanged.",
+				unauthorized ? 401 : 400
+			),
+			unauthorized ? 401 : 400
+		)
+	}
+})
 
 steamRoutes.post("/import", async (c) => {
 	try {
@@ -26,48 +56,7 @@ steamRoutes.post("/import", async (c) => {
 			.safeParse(await c.req.json().catch(() => null))
 		if (!input.success)
 			return c.json(jsonError("Invalid import request."), 400)
-		const response = await fetch(
-			`https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${encodeURIComponent(requiredSecret(c.env, "STEAM_API_KEY"))}&steamid=${encodeURIComponent(steamId)}&include_appinfo=1&include_played_free_games=1&format=json`,
-			{ signal: AbortSignal.timeout(15_000) }
-		)
-		if (!response.ok)
-			return c.json(
-				jsonError("Steam is unavailable. Please try again.", 502),
-				502
-			)
-		const data = z
-			.object({
-				response: z
-					.object({
-						game_count: z.number().optional(),
-						games: z
-							.array(
-								z.object({
-									appid: z.number().int().positive(),
-									name: z.string().optional()
-								})
-							)
-							.optional()
-					})
-					.optional()
-			})
-			.parse(await response.json())
-		if (
-			!data.response ||
-			(!data.response.games && data.response.game_count !== 0)
-		) {
-			return c.json(
-				jsonError(
-					"Steam library unavailable. Set your Steam Game Details to public, then try again."
-				),
-				400
-			)
-		}
-		const owned = [
-			...new Map(
-				(data.response.games ?? []).map((game) => [game.appid, game])
-			).values()
-		].sort((a, b) => a.appid - b.appid)
+		const owned = await getOwnedSteamGames(c.env, steamId, true)
 		const offset = input.data.offset
 		const page = owned.slice(offset, offset + 100)
 		const db = getDb(c.env.DB)
@@ -104,11 +93,17 @@ steamRoutes.post("/import", async (c) => {
 					session.user.id,
 					...chunk.map((item) => item.appid),
 					session.user.id
-				)
+				),
+				prepareSteamPlaytimeUpdate(c.env, session.user.id, chunk)
 			])
 			imported += results[1].meta.changes
 		}
 		const processed = Math.min(offset + page.length, owned.length)
+		if (processed === owned.length)
+			await db
+				.update(profiles)
+				.set({ playtimeSyncedAt: new Date() })
+				.where(eq(profiles.userId, session.user.id))
 		return c.json({
 			data: {
 				imported,
@@ -120,6 +115,8 @@ steamRoutes.post("/import", async (c) => {
 	} catch (error) {
 		if (error instanceof Error && error.message === "Sign in required")
 			return c.json(jsonError("Sign in required", 401), 401)
+		if (error instanceof Error && error.message.startsWith("Steam "))
+			return c.json(jsonError(error.message), 400)
 		console.error("Steam library import failed", error)
 		return c.json(
 			jsonError(

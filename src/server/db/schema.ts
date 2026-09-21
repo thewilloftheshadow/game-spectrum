@@ -134,6 +134,10 @@ export const profiles = sqliteTable("profiles", {
 		.default(false)
 		.notNull(),
 	steamVanity: text("steam_vanity").unique(),
+	playtimeSyncedAt: integer("playtime_synced_at", { mode: "timestamp_ms" }),
+	playtimeSyncAttemptAt: integer("playtime_sync_attempt_at", {
+		mode: "timestamp_ms"
+	}),
 	...timestamps()
 })
 
@@ -175,6 +179,8 @@ export const gameEntries = sqliteTable(
 			.default(false)
 			.notNull(),
 		steamAppId: integer("steam_app_id"),
+		playtimeMinutes: integer("playtime_minutes"),
+		paidPriceCents: integer("paid_price_cents"),
 		funFeeling: real("fun_feeling"),
 		immersive: real("immersive"),
 		variety: real("variety"),

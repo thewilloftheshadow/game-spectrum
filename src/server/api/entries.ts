@@ -27,6 +27,7 @@ entryRoutes.get("/entries", async (c) => {
 			.map(({ entry, game }) => ({
 				...entry,
 				game,
+				steamAppId: entry.steamAppId ?? game?.steamAppId ?? null,
 				title: game?.title ?? entry.manualTitle ?? "Untitled game",
 				coverUrl: entry.coverUrl ?? game?.coverUrl ?? null,
 				score: calculateScore(entry)
@@ -85,6 +86,13 @@ entryRoutes.patch("/entries/:id", async (c) => {
 		const parsed = z
 			.object({
 				hidden: z.boolean().optional(),
+				paidPriceCents: z
+					.number()
+					.int()
+					.min(0)
+					.max(99_999_999)
+					.nullable()
+					.optional(),
 				notes: z.string().max(1200).optional().nullable()
 			})
 			.parse(body)

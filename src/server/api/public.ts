@@ -1,4 +1,4 @@
-import { and, eq, or } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 import { Hono } from "hono"
 import { calculateScore } from "~/lib/scoring"
 import { getDb } from "../db"
@@ -13,7 +13,8 @@ export const publicProfile = async (env: Cloudflare.Env, userId: string) => {
 				slug: profiles.slug,
 				displayName: profiles.displayName,
 				bio: profiles.bio,
-				favoriteGenres: profiles.favoriteGenres
+				favoriteGenres: profiles.favoriteGenres,
+				avatarUrl: profiles.avatarUrl
 			},
 			owner: { image: user.image }
 		})
@@ -35,6 +36,8 @@ export const publicProfile = async (env: Cloudflare.Env, userId: string) => {
 		.map(({ entry, game }) => ({
 			id: entry.id,
 			hidden: entry.hidden,
+			steamAppId: entry.steamAppId ?? game?.steamAppId ?? null,
+			playtimeMinutes: entry.playtimeMinutes,
 			funFeeling: entry.funFeeling,
 			immersive: entry.immersive,
 			variety: entry.variety,
@@ -88,17 +91,13 @@ publicRoutes.get("/steam/:thing", async (c) => {
 		.select({ profile: profiles, owner: user })
 		.from(profiles)
 		.innerJoin(user, eq(profiles.userId, user.id))
-		.where(
-			and(
-				eq(profiles.isPublic, true),
-				or(eq(user.steamId, thing), eq(profiles.steamVanity, thing))
-			)
-		)
+		.where(and(eq(profiles.isPublic, true), eq(user.steamId, thing)))
 		.get()
 
 	if (!profile && !/^\d+$/.test(thing)) {
 		const resolved = await fetch(
-			`https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${encodeURIComponent(requiredSecret(c.env, "STEAM_API_KEY"))}&vanityurl=${encodeURIComponent(thing)}`
+			`https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${encodeURIComponent(requiredSecret(c.env, "STEAM_API_KEY"))}&vanityurl=${encodeURIComponent(thing)}`,
+			{ signal: AbortSignal.timeout(10_000) }
 		)
 			.then(
 				(response) =>

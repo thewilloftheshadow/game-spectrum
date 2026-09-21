@@ -5,6 +5,9 @@
 	"account_id": "07c634e5b9f9eb260972946dc8e2f891",
 	"compatibility_date": "2026-07-27",
 	"compatibility_flags": ["nodejs_compat"],
+	// Check hourly; each linked account is eligible only after 48 hours.
+	// A day-of-month */2 expression does not preserve 48-hour spacing across months.
+	"triggers": { "crons": ["0 * * * *"] },
 	"observability": {
 		"enabled": true
 	},

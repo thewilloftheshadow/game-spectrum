@@ -94,6 +94,7 @@ export const ratingFields = [
 	},
 	{
 		key: "performancePenalty",
+		defaultValue: 0,
 		label: "Performance",
 		group: "Penalties",
 		max: 20,
@@ -101,6 +102,7 @@ export const ratingFields = [
 	},
 	{
 		key: "badMomentPenalty",
+		defaultValue: 0,
 		label: "Bad Moment",
 		group: "Penalties",
 		max: 5,
@@ -108,6 +110,7 @@ export const ratingFields = [
 	},
 	{
 		key: "inconsistencyPenalty",
+		defaultValue: 0,
 		label: "Inconsistency",
 		group: "Penalties",
 		max: 10,
@@ -115,6 +118,7 @@ export const ratingFields = [
 	},
 	{
 		key: "replayabilityBonus",
+		defaultValue: 0,
 		label: "Replayability",
 		group: "Bonus",
 		max: 10,
@@ -123,6 +127,7 @@ export const ratingFields = [
 	},
 	{
 		key: "extraPercent",
+		defaultValue: 1,
 		label: "Extra %",
 		group: "Bonus",
 		max: 1.1,
@@ -141,6 +146,13 @@ export const ratingGroups = [
 export const scoreKeys = ratingFields.map((field) => field.key)
 
 export function calculateScore(entry: Record<string, unknown>) {
+	entry = Object.fromEntries(
+		ratingFields.map((field) => [
+			field.key,
+			entry[field.key] ??
+				("defaultValue" in field ? field.defaultValue : null)
+		])
+	)
 	if (
 		scoreKeys.some(
 			(key) =>
