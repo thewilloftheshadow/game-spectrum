@@ -51,7 +51,7 @@ export const getStorePrice = async (url: string) => {
 	if (store.provider === "apple") {
 		const response = await fetch(
 			`https://itunes.apple.com/lookup?id=${store.id}&country=US`,
-			{ signal: AbortSignal.timeout(10_000), redirect: "error" }
+			{ signal: AbortSignal.timeout(10_000), redirect: "manual" }
 		)
 		if (!response.ok) throw new Error("App Store prices unavailable")
 		const data = z
@@ -73,7 +73,7 @@ export const getStorePrice = async (url: string) => {
 	} else if (store.provider === "gog") {
 		const response = await fetch(
 			`https://catalog.gog.com/v1/catalog?query=${encodeURIComponent(store.id.replaceAll("_", " "))}&limit=48&currencyCode=USD&countryCode=US&locale=en-US`,
-			{ signal: AbortSignal.timeout(10_000), redirect: "error" }
+			{ signal: AbortSignal.timeout(10_000), redirect: "manual" }
 		)
 		if (!response.ok) throw new Error("GOG prices unavailable")
 		const data = z
@@ -118,7 +118,7 @@ export const getStorePrice = async (url: string) => {
 	} else if (store.provider === "google") {
 		const response = await fetch(store.url, {
 			signal: AbortSignal.timeout(10_000),
-			redirect: "error"
+			redirect: "manual"
 		})
 		if (response.status === 404) return null
 		if (!response.ok) throw new Error("Google Play prices unavailable")
@@ -172,8 +172,11 @@ export const getStorePrice = async (url: string) => {
 	} else {
 		const response = await fetch("https://store.epicgames.com/graphql", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			redirect: "error",
+			headers: {
+				"Content-Type": "application/json",
+				"User-Agent": "GameSpectrum/1.0 (+https://www.gamespectrum.org)"
+			},
+			redirect: "manual",
 			signal: AbortSignal.timeout(10_000),
 			body: JSON.stringify({
 				query: 'query Price($query: String!) { Catalog { searchStore(keywords: $query, country: "US", locale: "en-US", count: 40) { elements { productSlug offerType offerMappings { pageSlug } price(country: "US") { totalPrice { originalPrice discountPrice currencyCode } } } } } }',
