@@ -9,12 +9,17 @@ import styles from "./spectrum-table.module.css"
 
 export type SpectrumGame = Pick<
 	typeof gameEntries.$inferSelect,
-	"id" | "hidden" | (typeof ratingFields)[number]["key"]
-> & {
-	title: string
-	coverUrl: string | null
-	score: number | null
-}
+	| "id"
+	| "hidden"
+	| "steamAppId"
+	| "playtimeMinutes"
+	| (typeof ratingFields)[number]["key"]
+> &
+	Partial<Pick<typeof gameEntries.$inferSelect, "paidPriceCents">> & {
+		title: string
+		coverUrl: string | null
+		score: number | null
+	}
 
 export function SpectrumTable({
 	entries,
@@ -38,14 +43,19 @@ export function SpectrumTable({
 	const [drafts, setDrafts] = useState<
 		Record<
 			string,
-			Partial<Record<(typeof ratingFields)[number]["key"], string>>
+			Partial<
+				Record<
+					(typeof ratingFields)[number]["key"] | "paidPrice",
+					string
+				>
+			>
 		>
 	>({})
 	const [visibility, setVisibility] = useState<Record<string, boolean>>({})
 	const changeScore = useCallback(
 		(
 			id: string,
-			key: (typeof ratingFields)[number]["key"],
+			key: (typeof ratingFields)[number]["key"] | "paidPrice",
 			value: string
 		) => {
 			setDrafts((current) => ({
@@ -97,6 +107,22 @@ export function SpectrumTable({
 							? Math.round((1 + number / 100) * 1000) / 1000
 							: number
 				}
+				const paid = drafts[id]?.paidPrice
+				if (paid !== undefined) {
+					const amount = Number(paid)
+					if (paid.trim() === "") values.paidPriceCents = null
+					else if (
+						!Number.isFinite(amount) ||
+						amount < 0 ||
+						amount > 999999.99 ||
+						Math.abs(amount * 100 - Math.round(amount * 100)) >
+							0.000001
+					)
+						throw new Error(
+							`${game.title}: paid price must be between 0 and 999999.99 USD, with at most two decimal places.`
+						)
+					else values.paidPriceCents = Math.round(amount * 100)
+				}
 				if (visibility[id] !== undefined) values.hidden = visibility[id]
 				return { id, title: game.title, values }
 			})
@@ -119,7 +145,11 @@ export function SpectrumTable({
 			return { saved, failed }
 		},
 		onSuccess: async ({ saved }) => {
-			await queryClient.invalidateQueries({ queryKey: ["entries"] })
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ["entries"] }),
+				queryClient.invalidateQueries({ queryKey: ["public"] }),
+				queryClient.invalidateQueries({ queryKey: ["me"] })
+			])
 			setDrafts((current) =>
 				Object.fromEntries(
 					Object.entries(current).filter(([id]) => !saved.has(id))
@@ -240,6 +270,38 @@ export function SpectrumTable({
 									className={styles.visibility}
 								>
 									Hidden
+								</th>
+							)}
+							<th
+								scope="col"
+								rowSpan={2}
+								className={styles.hours}
+								title="Synced from Steam every 48 hours, or use Sync playtime."
+							>
+								Hours played
+							</th>
+							<th
+								scope="col"
+								rowSpan={2}
+								className={styles.price}
+								title="Steam US price; updates when viewed, cached for 15 minutes."
+							>
+								Current price
+								<span className={styles.currency}>
+									USD · Steam
+								</span>
+							</th>
+							{editable && (
+								<th
+									scope="col"
+									rowSpan={2}
+									className={styles.paid}
+									title="Defaults to the regular Steam price until edited. Paid amounts are private."
+								>
+									Paid
+									<span className={styles.currency}>
+										USD · private
+									</span>
 								</th>
 							)}
 						</tr>

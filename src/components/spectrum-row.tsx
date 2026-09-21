@@ -1,6 +1,7 @@
 import { Fragment, memo } from "react"
 import { calculateScore, ratingFields, ratingGroups } from "~/lib/scoring"
 import type { SpectrumGame } from "./spectrum-table"
+import { SpectrumPrices } from "./spectrum-prices"
 import styles from "./spectrum-table.module.css"
 
 export const SpectrumRow = memo(function SpectrumRow({
@@ -17,11 +18,13 @@ export const SpectrumRow = memo(function SpectrumRow({
 	entry: SpectrumGame
 	editable: boolean
 	rank?: number
-	draft?: Partial<Record<(typeof ratingFields)[number]["key"], string>>
+	draft?: Partial<
+		Record<(typeof ratingFields)[number]["key"] | "paidPrice", string>
+	>
 	hidden?: boolean
 	onScoreChange: (
 		id: string,
-		key: (typeof ratingFields)[number]["key"],
+		key: (typeof ratingFields)[number]["key"] | "paidPrice",
 		value: string
 	) => void
 	onVisibilityChange: (id: string, hidden: boolean) => void
@@ -34,9 +37,12 @@ export const SpectrumRow = memo(function SpectrumRow({
 			return [
 				field.key,
 				value === undefined
-					? entry[field.key]
+					? (entry[field.key] ??
+						("defaultValue" in field ? field.defaultValue : null))
 					: value.trim() === ""
-						? null
+						? "defaultValue" in field
+							? field.defaultValue
+							: null
 						: field.key === "extraPercent"
 							? Math.round((1 + Number(value) / 100) * 1000) /
 								1000
@@ -83,7 +89,11 @@ export const SpectrumRow = memo(function SpectrumRow({
 			{ratingGroups.map((group) => (
 				<Fragment key={group.name}>
 					{group.fields.map((field) => {
-						const stored = entry[field.key]
+						const stored =
+							entry[field.key] ??
+							("defaultValue" in field
+								? field.defaultValue
+								: null)
 						const value =
 							draft[field.key] ??
 							(stored === null
@@ -174,6 +184,26 @@ export const SpectrumRow = memo(function SpectrumRow({
 					/>
 				</td>
 			)}
+			<td
+				className={styles.hours}
+				title={
+					entry.playtimeMinutes == null
+						? "Steam playtime unavailable"
+						: `${entry.playtimeMinutes.toLocaleString()} minutes on Steam`
+				}
+			>
+				{entry.playtimeMinutes == null
+					? "—"
+					: (entry.playtimeMinutes / 60).toFixed(1)}
+			</td>
+			<SpectrumPrices
+				entry={entry}
+				editable={editable}
+				draft={draft.paidPrice}
+				onChange={onScoreChange}
+				formId={formId}
+				disabled={disabled}
+			/>
 		</tr>
 	)
 })

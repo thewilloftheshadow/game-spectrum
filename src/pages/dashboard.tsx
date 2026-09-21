@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
 import { SpectrumTable, type SpectrumGame } from "~/components/spectrum-table"
+import { CopyProfileLink } from "~/components/copy-profile-link"
+import { myProfileQuery } from "~/lib/profile"
+import type { syncSteamPlaytime } from "~/server/steam"
 import { apiJson, apiQueryOptions } from "~/lib/api-client"
 import type { gamePayload } from "~/server/api/context"
 import type { z } from "zod"
@@ -45,6 +48,20 @@ export default function DashboardPage() {
 	const entries = useQuery({
 		...apiQueryOptions<{ data: SpectrumGame[] }>(["entries"], "entries"),
 		refetchOnWindowFocus: false
+	})
+	const me = useQuery(myProfileQuery)
+	const sync = useMutation({
+		mutationFn: () =>
+			apiJson<{ data: Awaited<ReturnType<typeof syncSteamPlaytime>> }>(
+				"steam/playtime/sync",
+				{}
+			),
+		onSuccess: () =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: ["entries"] }),
+				queryClient.invalidateQueries({ queryKey: ["me"] }),
+				queryClient.invalidateQueries({ queryKey: ["public"] })
+			])
 	})
 	const search = useQuery({
 		...apiQueryOptions<{ data: z.infer<typeof gamePayload>[] }>(
@@ -142,14 +159,48 @@ export default function DashboardPage() {
 							>
 								{adding ? "Close search" : "Add game"}
 							</button>
-							<Link to="/accounts" className={ui.quiet}>
-								Account
+							{me.data?.data.user.steamId && (
+								<button
+									className={ui.secondary}
+									type="button"
+									disabled={sync.isPending}
+									aria-label="Sync Steam playtime"
+									title={`Updates automatically every 48 hours. Last synced: ${me.data.data.profile?.playtimeSyncedAt ? new Date(String(me.data.data.profile.playtimeSyncedAt)).toLocaleString() : "never"}`}
+									onClick={() => sync.mutate()}
+								>
+									{sync.isPending
+										? "Syncing…"
+										: sync.isSuccess
+											? "Synced"
+											: "Sync playtime"}
+								</button>
+							)}
+							<Link to="/accounts/profile" className={ui.quiet}>
+								Profile
 							</Link>
+							{me.data?.data.profile?.isPublic && (
+								<CopyProfileLink
+									slug={me.data.data.profile.slug}
+									compact
+								/>
+							)}
 							{saveButton}
 						</div>
 					</header>
 				)}
 			>
+				{sync.error && (
+					<div className={styles.status}>
+						<p className={ui.error} role="alert">
+							{sync.error.message}
+						</p>
+					</div>
+				)}
+				{sync.isSuccess && (
+					<span className={ui.srOnly} role="status">
+						Playtime synced for {sync.data.data.updated} games.
+					</span>
+				)}
 				{adding && (
 					<section
 						id="add-games"

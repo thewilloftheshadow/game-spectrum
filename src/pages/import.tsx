@@ -105,7 +105,11 @@ export default function ImportPage() {
 			)
 		},
 		onSettled: () =>
-			queryClient.invalidateQueries({ queryKey: ["entries"] })
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: ["entries"] }),
+				queryClient.invalidateQueries({ queryKey: ["me"] }),
+				queryClient.invalidateQueries({ queryKey: ["public"] })
+			])
 	})
 	return (
 		<main id="main" className={`${ui.page} ${ui.narrow}`}>

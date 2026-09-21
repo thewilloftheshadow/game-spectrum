@@ -218,6 +218,51 @@
 	text-align: right;
 	padding: 12px;
 }
+.table .hours,
+.table .price,
+.table .paid {
+	min-width: 140px;
+	text-align: right;
+}
+.table th.hours,
+.table th.price,
+.table th.paid {
+	text-align: center;
+	padding: 12px;
+}
+.table td.hours,
+.table td.price {
+	padding: 12px;
+}
+.price a {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 5px;
+}
+.price a:hover {
+	text-decoration: underline;
+}
+.price s,
+.currency {
+	color: var(--muted);
+	font-size: 11px;
+}
+.currency {
+	display: block;
+	margin-top: 6px;
+	font-weight: 400;
+}
+.sale {
+	color: var(--accent);
+}
+.priceRetry {
+	border: 0;
+	background: transparent;
+	color: var(--muted);
+	font-size: 12px;
+	text-decoration: underline;
+}
 .visibility {
 	min-width: 75px;
 	text-align: center;
