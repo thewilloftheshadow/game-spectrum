@@ -31,7 +31,7 @@ bun run dev
 - `/u/:slug`, `/steam/:thing` — public rating tables
 - `/about` — original spreadsheet explanation
 
-Games are rows, with all rating fields grouped into columns across the top. Library and public profile tables show one unpaginated sheet with sticky game names and headers. The sheet scrolls with the document, without a nested scroll area. The dashboard has a compact toolbar instead of the site header and page heading. Its single Save button saves every edited game, including edits outside the current filter; failed saves retain their drafts for retry. Extra % is displayed as a percentage and stored as the spreadsheet multiplier.
+Games are rows, with all rating fields grouped into columns across the top. Library and public profile tables show one unpaginated sheet with sticky game names and headers. The sheet scrolls with the document, without a nested scroll area. The dashboard has a compact toolbar instead of the site header and page heading. Its single Save button saves every edited game, including edits outside the current filter; failed saves retain their drafts for retry. Extra % is displayed as a percentage and stored as the spreadsheet multiplier. In the editable sheet, unmodified arrow keys move between inputs: up/down keep the same column, left/right skip calculated cells. Navigation includes Hidden and Paid, stays within the filtered rows, stops at sheet edges, and scrolls the destination clear of sticky headers. Arrow navigation does not change values or save; Tab and modified arrow keys retain their normal behavior.
 
 Game search ranks normalized exact title matches ahead of partial matches across providers. Steam remains first when relevance is tied.
 

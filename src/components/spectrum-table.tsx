@@ -349,7 +349,109 @@ export function SpectrumTable({
 							))}
 						</tr>
 					</thead>
-					<tbody>
+					<tbody
+						onKeyDown={(event) => {
+							const input = event.target
+							if (
+								!editable ||
+								event.defaultPrevented ||
+								event.nativeEvent.isComposing ||
+								event.altKey ||
+								event.ctrlKey ||
+								event.metaKey ||
+								event.shiftKey ||
+								![
+									"ArrowUp",
+									"ArrowDown",
+									"ArrowLeft",
+									"ArrowRight"
+								].includes(event.key) ||
+								!(input instanceof HTMLInputElement) ||
+								input.disabled ||
+								input.readOnly ||
+								!["number", "checkbox"].includes(input.type)
+							)
+								return
+							const cell = input.closest("td")
+							const row = cell?.parentElement
+							if (!cell || !(row instanceof HTMLTableRowElement))
+								return
+							// Prevent number inputs from stepping, even at a sheet boundary.
+							event.preventDefault()
+							const horizontal =
+								event.key === "ArrowLeft" ||
+								event.key === "ArrowRight"
+							const direction =
+								event.key === "ArrowLeft" ||
+								event.key === "ArrowUp"
+									? -1
+									: 1
+							let rowIndex =
+								row.sectionRowIndex +
+								(horizontal ? 0 : direction)
+							let columnIndex =
+								cell.cellIndex + (horizontal ? direction : 0)
+							const body = event.currentTarget
+							while (
+								rowIndex >= 0 &&
+								rowIndex < body.rows.length &&
+								columnIndex >= 0
+							) {
+								const nextCell =
+									body.rows[rowIndex].cells[columnIndex]
+								if (!nextCell) break
+								const next =
+									nextCell.querySelector<HTMLInputElement>(
+										"input:not(:disabled):not([readonly])"
+									)
+								if (next) {
+									next.focus({ preventScroll: true })
+									if (next.type === "number") next.select()
+									// Account for the sticky category headers and game-name column.
+									const bounds = next.getBoundingClientRect()
+									const top =
+										Math.max(
+											0,
+											body
+												.closest("table")
+												?.tHead?.getBoundingClientRect()
+												.bottom ?? 0
+										) + 8
+									const left =
+										Math.max(
+											0,
+											body.rows[
+												rowIndex
+											].cells[0].getBoundingClientRect()
+												.right
+										) + 8
+									const bottom =
+										document.documentElement.clientHeight -
+										8
+									const right =
+										document.documentElement.clientWidth - 8
+									window.scrollBy({
+										top:
+											bounds.top < top
+												? bounds.top - top
+												: bounds.bottom > bottom
+													? bounds.bottom - bottom
+													: 0,
+										left:
+											bounds.left < left
+												? bounds.left - left
+												: bounds.right > right
+													? bounds.right - right
+													: 0,
+										behavior: "instant"
+									})
+									break
+								}
+								if (horizontal) columnIndex += direction
+								else rowIndex += direction
+							}
+						}}
+					>
 						{visibleEntries.map((entry) => (
 							<SpectrumRow
 								key={entry.id}
