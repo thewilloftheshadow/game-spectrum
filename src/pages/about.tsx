@@ -74,9 +74,10 @@ export default function AboutPage() {
 					bonus.
 				</p>
 				<p>
-					Scores accept one decimal place. A game stays unrated until
-					every field is filled, including zero penalties and bonuses.
-					Hidden and unrated games do not appear on public profiles.
+					Scores accept one decimal place. Complete all 13 base rating
+					fields to rank a game. Blank penalties and bonuses default
+					to zero, including 0% extra. Hidden and unfinished games do
+					not appear on public profiles.
 				</p>
 			</section>
 		</main>

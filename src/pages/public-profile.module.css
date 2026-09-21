@@ -1,35 +1,88 @@
+.page {
+	padding-bottom: 40px;
+}
 .profile {
 	display: flex;
 	align-items: flex-start;
-	gap: 20px;
-	margin-bottom: 32px;
+	flex-wrap: wrap;
+	gap: 18px;
+	max-width: 1100px;
+	padding: 28px 4vw 24px;
 }
 .profile img {
-	width: 64px;
-	height: 64px;
+	width: 56px;
+	height: 56px;
 	border-radius: 3px;
 	object-fit: cover;
 }
-.bio {
-	max-width: 640px;
+.identity {
+	flex: 1;
+	min-width: 180px;
+}
+.identity h1 {
+	font-size: clamp(24px, 3vw, 34px);
+	font-weight: 500;
+	letter-spacing: -1px;
+	line-height: 1.15;
+	overflow-wrap: anywhere;
+}
+.count {
+	margin-top: 8px;
 	color: var(--muted);
-	font-size: 15px;
-	line-height: 1.65;
-	margin-top: 15px;
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+}
+.bio {
+	max-width: 60ch;
+	color: var(--muted);
+	font-size: 14px;
+	line-height: 1.6;
+	margin-top: 14px;
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
 }
 .genres {
-	margin-top: 12px;
+	margin-top: 10px;
 	color: var(--muted);
 	font-size: 12px;
 }
+.actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.tools {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 0 4vw 18px;
+}
+.tools label {
+	width: min(280px, 65vw);
+}
+.tools input {
+	min-height: 36px;
+	padding: 9px 12px;
+	font-size: 13px;
+}
+.empty {
+	display: grid;
+	justify-items: start;
+	gap: 18px;
+	padding: 32px 4vw;
+	color: var(--muted);
+	font-size: 14px;
+}
 @media (max-width: 650px) {
 	.profile {
-		gap: 15px;
+		gap: 12px;
+		padding-top: 22px;
 	}
 	.profile img {
-		width: 46px;
-		height: 46px;
+		width: 44px;
+		height: 44px;
+	}
+	.actions {
+		width: 100%;
 	}
 }
