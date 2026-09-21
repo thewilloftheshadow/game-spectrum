@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm"
 import { z } from "zod"
 import { ratingFields } from "~/lib/scoring"
+import { getStorefront } from "~/lib/storefront"
 import { getAuth } from "../auth"
 import { getDb } from "../db"
 import { games, profiles } from "../db/schema"
@@ -104,13 +105,24 @@ export const parseScoreBody = (body: Record<string, unknown>) => {
 	return values
 }
 
+export const storeUrlSchema = z
+	.string()
+	.trim()
+	.max(1000)
+	.refine(
+		(value) => getStorefront(value) !== null,
+		"Use a Steam, Epic, GOG, App Store, or Google Play game URL."
+	)
+	.transform((value) => getStorefront(value)!.url)
+
 export const gamePayload = z.object({
 	title: z.string().min(1),
 	source: z.enum(["steam", "igdb", "manual"]).default("manual"),
 	steamAppId: z.number().int().optional().nullable(),
 	igdbId: z.number().int().optional().nullable(),
 	coverUrl: z.string().optional().nullable(),
-	releaseYear: z.number().int().optional().nullable()
+	releaseYear: z.number().int().optional().nullable(),
+	storeUrl: storeUrlSchema.nullable().optional()
 })
 
 export const saveGame = async (

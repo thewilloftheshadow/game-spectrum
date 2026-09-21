@@ -181,6 +181,7 @@ export const gameEntries = sqliteTable(
 		steamAppId: integer("steam_app_id"),
 		playtimeMinutes: integer("playtime_minutes"),
 		paidPriceCents: integer("paid_price_cents"),
+		storeUrl: text("store_url"),
 		funFeeling: real("fun_feeling"),
 		immersive: real("immersive"),
 		variety: real("variety"),

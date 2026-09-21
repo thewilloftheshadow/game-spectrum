@@ -1,5 +1,6 @@
 import { Hono } from "hono"
 import { type ApiEnv, requiredSecret } from "./context"
+import { getStorefront } from "~/lib/storefront"
 
 export const gameRoutes = new Hono<ApiEnv>()
 
@@ -33,7 +34,8 @@ gameRoutes.get("/search", async (c) => {
 		.catch(() => [])
 
 	const igdb = await fetch("https://api.igdb.com/v4/games", {
-		body: `search "${query.replaceAll('"', "")}"; fields name,first_release_date,cover.image_id; limit 8;`,
+		body: `search ${JSON.stringify(query)}; fields name,first_release_date,cover.image_id,websites.url,external_games.url; limit 8;`,
+		signal: AbortSignal.timeout(8_000),
 		headers: {
 			"Client-ID": requiredSecret(c.env, "IGDB_CLIENT_ID"),
 			Authorization: `Bearer ${requiredSecret(c.env, "IGDB_ACCESS_TOKEN")}`
@@ -48,10 +50,28 @@ gameRoutes.get("/search", async (c) => {
 					name: string
 					first_release_date?: number
 					cover?: { image_id?: string }
+					websites?: { url?: string }[]
+					external_games?: { url?: string }[]
 				}
+				const stores = [
+					...(game.websites ?? []),
+					...(game.external_games ?? [])
+				]
+					.map((link) => getStorefront(link.url))
+					.filter((store) => store !== null)
+					.sort(
+						(a, b) =>
+							["steam", "gog", "epic", "apple", "google"].indexOf(
+								a.provider
+							) -
+							["steam", "gog", "epic", "apple", "google"].indexOf(
+								b.provider
+							)
+					)
 				return {
 					title: game.name,
 					source: "igdb",
+					storeUrl: stores[0]?.url ?? null,
 					igdbId: game.id,
 					coverUrl: game.cover?.image_id
 						? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover.image_id}.jpg`

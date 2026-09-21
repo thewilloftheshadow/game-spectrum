@@ -4,11 +4,13 @@ import { z } from "zod"
 import { calculateScore } from "~/lib/scoring"
 import { getDb } from "../db"
 import { gameEntries, games } from "../db/schema"
+import { getIGDBStoreLinks } from "../storefronts"
 import {
 	type ApiEnv,
 	gamePayload,
 	jsonError,
 	parseScoreBody,
+	storeUrlSchema,
 	requireSession,
 	saveGame
 } from "./context"
@@ -23,11 +25,28 @@ entryRoutes.get("/entries", async (c) => {
 			.from(gameEntries)
 			.leftJoin(games, eq(gameEntries.gameId, games.id))
 			.where(eq(gameEntries.userId, session.user.id))
+		const links = await getIGDBStoreLinks(
+			c.env,
+			rows
+				.filter(
+					({ entry, game }) =>
+						!entry.storeUrl &&
+						!entry.steamAppId &&
+						!game?.steamAppId &&
+						game?.igdbId
+				)
+				.map(({ game }) => game!.igdbId!)
+		)
 		const data = rows
 			.map(({ entry, game }) => ({
 				...entry,
 				game,
 				steamAppId: entry.steamAppId ?? game?.steamAppId ?? null,
+				storeUrl:
+					entry.storeUrl ??
+					((entry.steamAppId ?? game?.steamAppId)
+						? `https://store.steampowered.com/app/${entry.steamAppId ?? game?.steamAppId}/`
+						: (links.get(game?.igdbId ?? 0) ?? null)),
 				title: game?.title ?? entry.manualTitle ?? "Untitled game",
 				coverUrl: entry.coverUrl ?? game?.coverUrl ?? null,
 				score: calculateScore(entry)
@@ -69,7 +88,8 @@ entryRoutes.post("/entries", async (c) => {
 			manualTitle: parsed.source === "manual" ? parsed.title : null,
 			coverUrl: parsed.coverUrl ?? null,
 			importedFromSteam: false,
-			steamAppId: parsed.steamAppId ?? null
+			steamAppId: parsed.steamAppId ?? null,
+			storeUrl: parsed.storeUrl ?? null
 		}
 		await db.insert(gameEntries).values(entry)
 		return c.json({ data: entry })
@@ -86,6 +106,7 @@ entryRoutes.patch("/entries/:id", async (c) => {
 		const parsed = z
 			.object({
 				hidden: z.boolean().optional(),
+				storeUrl: storeUrlSchema.nullable().optional(),
 				paidPriceCents: z
 					.number()
 					.int()

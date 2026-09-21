@@ -1,0 +1,1 @@
+ALTER TABLE `game_entries` ADD `store_url` text;

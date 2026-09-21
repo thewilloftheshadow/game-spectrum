@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm"
 import { Hono } from "hono"
 import { calculateScore } from "~/lib/scoring"
 import { getDb } from "../db"
+import { getIGDBStoreLinks } from "../storefronts"
 import { gameEntries, games, profiles, user } from "../db/schema"
 import { type ApiEnv, jsonError, requiredSecret } from "./context"
 
@@ -32,12 +33,31 @@ export const publicProfile = async (env: Cloudflare.Env, userId: string) => {
 		.where(
 			and(eq(gameEntries.userId, userId), eq(gameEntries.hidden, false))
 		)
-	const entries = rows
+	const visible = rows.filter(({ entry }) => calculateScore(entry) !== null)
+	const links = await getIGDBStoreLinks(
+		env,
+		visible
+			.filter(
+				({ entry, game }) =>
+					!entry.storeUrl &&
+					!entry.steamAppId &&
+					!game?.steamAppId &&
+					game?.igdbId
+			)
+			.map(({ game }) => game!.igdbId!)
+	)
+	const entries = visible
 		.map(({ entry, game }) => ({
 			id: entry.id,
 			hidden: entry.hidden,
 			steamAppId: entry.steamAppId ?? game?.steamAppId ?? null,
 			playtimeMinutes: entry.playtimeMinutes,
+			paidPriceCents: entry.paidPriceCents,
+			storeUrl:
+				entry.storeUrl ??
+				((entry.steamAppId ?? game?.steamAppId)
+					? `https://store.steampowered.com/app/${entry.steamAppId ?? game?.steamAppId}/`
+					: (links.get(game?.igdbId ?? 0) ?? null)),
 			funFeeling: entry.funFeeling,
 			immersive: entry.immersive,
 			variety: entry.variety,
