@@ -1,4 +1,7 @@
 import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { apiQueryOptions } from "~/lib/api-client"
+import type { SpectrumGame } from "~/components/spectrum-table"
 import { Link } from "react-router"
 import { authClient } from "~/lib/auth-client"
 import ui from "~/styles/ui.module.css"
@@ -14,18 +17,60 @@ const games = [
 export default function HomePage() {
 	const [selected, setSelected] = useState(0)
 	const { data: session } = authClient.useSession()
+	const entries = useQuery({
+		...apiQueryOptions<{ data: SpectrumGame[] }>(["entries"], "entries"),
+		enabled: !!session,
+		refetchOnWindowFocus: false
+	})
+	const personal = (session ? (entries.data?.data ?? []) : [])
+		.filter((entry) => entry.score !== null)
+		.sort((a, b) => b.score! - a.score!)
+		.slice(0, 4)
+		.map((entry) => ({
+			id: entry.id,
+			title: entry.title,
+			image: entry.steamAppId
+				? `https://cdn.akamai.steamstatic.com/steam/apps/${entry.steamAppId}/library_hero.jpg`
+				: entry.coverUrl,
+			fallbackImage: entry.coverUrl
+		}))
+	const featured = [
+		...personal,
+		...games
+			.filter(
+				(game) =>
+					!personal.some(
+						(entry) =>
+							entry.title.toLowerCase() ===
+							game.title.toLowerCase()
+					)
+			)
+			.map((game) => ({ ...game, id: game.title, fallbackImage: null }))
+	].slice(0, 4)
+	const active = featured[selected] ?? featured[0]
 	return (
 		<main id="main">
 			<section className={styles.hero}>
-				<img
-					key={games[selected].image}
-					className={styles.art}
-					src={games[selected].image}
-					alt={`${games[selected].title} artwork`}
-					width={1300}
-					height={419}
-					fetchPriority="high"
-				/>
+				{active.image && (
+					<img
+						key={active.image}
+						className={styles.art}
+						src={active.image}
+						alt={`${active.title} artwork`}
+						onError={(event) => {
+							if (
+								active.fallbackImage &&
+								event.currentTarget.getAttribute("src") !==
+									active.fallbackImage
+							)
+								event.currentTarget.src = active.fallbackImage
+							else event.currentTarget.hidden = true
+						}}
+						width={1300}
+						height={419}
+						fetchPriority="high"
+					/>
+				)}
 				<div className={styles.content}>
 					<h1>
 						Game
@@ -40,20 +85,38 @@ export default function HomePage() {
 						<span aria-hidden="true">↗</span>
 					</Link>
 				</div>
-				<span className={styles.caption}>{games[selected].title}</span>
+				<span className={styles.caption}>{active.title}</span>
 			</section>
 			<div
 				className={styles.filmstrip}
 				role="group"
 				aria-label="Featured game artwork"
 			>
-				{games.map((game, index) => (
+				{featured.map((game, index) => (
 					<button
-						key={game.title}
+						key={game.id}
 						aria-pressed={selected === index}
 						onClick={() => setSelected(index)}
 					>
-						<img src={game.image} alt="" width={86} height={58} />
+						{game.image && (
+							<img
+								src={game.image}
+								alt=""
+								width={86}
+								height={58}
+								onError={(event) => {
+									if (
+										game.fallbackImage &&
+										event.currentTarget.getAttribute(
+											"src"
+										) !== game.fallbackImage
+									)
+										event.currentTarget.src =
+											game.fallbackImage
+									else event.currentTarget.hidden = true
+								}}
+							/>
+						)}
 						<span>{game.title}</span>
 					</button>
 				))}

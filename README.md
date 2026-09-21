@@ -37,7 +37,15 @@ Game search ranks normalized exact title matches ahead of partial matches across
 
 Steam imports run in batches of up to 100 games per request. Progress persists across in-app navigation while the tab stays open. Repeating an import keeps existing ratings and visibility, and skips games already in the library. Account connections display provider names/emails when available, with account IDs as a fallback.
 
-New profiles default to a random eight-character slug. Existing profile URLs are preserved.
+New profiles default to a random eight-character slug. Existing profile URLs are preserved. Profile visibility saves immediately, separately from the profile-details form. The library toolbar, profile settings, and public profile provide copy-link actions. Hidden games, unfinished core ratings, and paid amounts stay private. Completing all 13 base rating fields produces a score; blank penalties, replayability, and Extra % default to neutral values. The original spreadsheet note remains verbatim on About.
+
+## Prices and playtime
+
+The sheet ends with Hours played, Current price, and (in your own library) Paid. Steam US prices use USD, show both regular and discounted prices during sales, and load only as cells approach the viewport. Prices are cached for 15 minutes. Unavailable/non-Steam prices stay unknown rather than being guessed. Paid amounts are stored as integer cents and saved with the main Save button. Until overridden, Paid displays the regular Steam price as an estimate, not purchase history; zero is a valid override and clearing restores the default.
+
+Steam imports populate playtime and preserve ratings, visibility, notes, and paid amounts. **Sync playtime** updates only playtime for games already in the library. The Worker checks hourly for linked accounts due for a 48-hour refresh, with a bounded batch of ten accounts per invocation; failed automatic attempts wait another 48 hours. This uses elapsed time rather than an every-other-day-of-month cron, which has uneven gaps at month boundaries. Private or unavailable Steam libraries retain saved hours. Sync requires Steam Game Details to be public. The hourly trigger and schema migration take effect on deployment.
+
+Signed-in visitors see their four highest-rated games in the existing homepage artwork strip. Empty slots retain the featured games; the homepage layout and copy are unchanged.
 
 ## Required runtime secrets
 
