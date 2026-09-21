@@ -1,5 +1,6 @@
 import { Fragment, memo } from "react"
 import { calculateScore, ratingFields, ratingGroups } from "~/lib/scoring"
+import { getStorefront } from "~/lib/storefront"
 import type { SpectrumGame } from "./spectrum-table"
 import { SpectrumPrices } from "./spectrum-prices"
 import styles from "./spectrum-table.module.css"
@@ -19,12 +20,15 @@ export const SpectrumRow = memo(function SpectrumRow({
 	editable: boolean
 	rank?: number
 	draft?: Partial<
-		Record<(typeof ratingFields)[number]["key"] | "paidPrice", string>
+		Record<
+			(typeof ratingFields)[number]["key"] | "paidPrice" | "storeUrl",
+			string
+		>
 	>
 	hidden?: boolean
 	onScoreChange: (
 		id: string,
-		key: (typeof ratingFields)[number]["key"] | "paidPrice",
+		key: (typeof ratingFields)[number]["key"] | "paidPrice" | "storeUrl",
 		value: string
 	) => void
 	onVisibilityChange: (id: string, hidden: boolean) => void
@@ -51,6 +55,13 @@ export const SpectrumRow = memo(function SpectrumRow({
 		})
 	)
 	const score = calculateScore(values)
+	const store = getStorefront(
+		draft.storeUrl ??
+			entry.storeUrl ??
+			(entry.steamAppId
+				? `https://store.steampowered.com/app/${entry.steamAppId}/`
+				: null)
+	)
 	return (
 		<tr>
 			<th scope="row" className={styles.game}>
@@ -65,7 +76,20 @@ export const SpectrumRow = memo(function SpectrumRow({
 						/>
 					)}
 					<div>
-						<strong>{entry.title}</strong>
+						<strong>
+							{store ? (
+								<a
+									className={styles.storeTitle}
+									href={store.url}
+									target="_blank"
+									rel="noreferrer"
+								>
+									{entry.title}
+								</a>
+							) : (
+								entry.title
+							)}
+						</strong>
 						<div className={styles.meta}>
 							<span>
 								{[
@@ -79,6 +103,50 @@ export const SpectrumRow = memo(function SpectrumRow({
 									.filter(Boolean)
 									.join(" / ")}
 							</span>
+							{editable ? (
+								<details
+									className={styles.storePicker}
+									name={`${formId}-rating-help`}
+								>
+									<summary
+										aria-label={`Store link for ${entry.title}`}
+									>
+										{store?.label ?? "Add store"}
+									</summary>
+									<div>
+										<label>
+											Store link
+											<input
+												form={formId}
+												type="url"
+												value={
+													draft.storeUrl ??
+													entry.storeUrl ??
+													store?.url ??
+													""
+												}
+												placeholder="Paste the game's store URL"
+												disabled={disabled}
+												aria-label={`${entry.title}: store URL`}
+												onChange={(event) =>
+													onScoreChange(
+														entry.id,
+														"storeUrl",
+														event.target.value
+													)
+												}
+											/>
+										</label>
+										<p>
+											Steam, Epic, GOG, App Store, or
+											Google Play. Use Save above to keep
+											this link.
+										</p>
+									</div>
+								</details>
+							) : (
+								store && <span>{store.label}</span>
+							)}
 						</div>
 					</div>
 				</div>
@@ -198,6 +266,7 @@ export const SpectrumRow = memo(function SpectrumRow({
 			</td>
 			<SpectrumPrices
 				entry={entry}
+				storeUrl={store?.url ?? null}
 				editable={editable}
 				draft={draft.paidPrice}
 				onChange={onScoreChange}

@@ -112,7 +112,9 @@ export default function ProfileSettingsPage() {
 							{profile.isPublic
 								? "Completed ratings are visible at your profile link."
 								: "Your profile link returns “not found” until you make it public."}{" "}
-							Hidden games and paid amounts stay private.
+							Hidden games stay private. Shared games show your
+							saved Paid amount, or the current store price when
+							unset.
 						</p>
 						<p className={styles.counts}>
 							{me.data?.data.library.ready ?? 0}{" "}

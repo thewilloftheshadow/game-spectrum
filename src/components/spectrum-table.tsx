@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Fragment, useCallback, useId, useState, type ReactNode } from "react"
 import { apiJson } from "~/lib/api-client"
 import { ratingFields, ratingGroups } from "~/lib/scoring"
+import { getStorefront } from "~/lib/storefront"
 import type { gameEntries } from "~/server/db/schema"
 import ui from "~/styles/ui.module.css"
 import { SpectrumRow } from "./spectrum-row"
@@ -13,6 +14,7 @@ export type SpectrumGame = Pick<
 	| "hidden"
 	| "steamAppId"
 	| "playtimeMinutes"
+	| "storeUrl"
 	| (typeof ratingFields)[number]["key"]
 > &
 	Partial<Pick<typeof gameEntries.$inferSelect, "paidPriceCents">> & {
@@ -45,7 +47,9 @@ export function SpectrumTable({
 			string,
 			Partial<
 				Record<
-					(typeof ratingFields)[number]["key"] | "paidPrice",
+					| (typeof ratingFields)[number]["key"]
+					| "paidPrice"
+					| "storeUrl",
 					string
 				>
 			>
@@ -55,7 +59,10 @@ export function SpectrumTable({
 	const changeScore = useCallback(
 		(
 			id: string,
-			key: (typeof ratingFields)[number]["key"] | "paidPrice",
+			key:
+				| (typeof ratingFields)[number]["key"]
+				| "paidPrice"
+				| "storeUrl",
 			value: string
 		) => {
 			setDrafts((current) => ({
@@ -81,7 +88,8 @@ export function SpectrumTable({
 					throw new Error(
 						"A changed game is unavailable. Reload your library before saving."
 					)
-				const values: Record<string, number | boolean | null> = {}
+				const values: Record<string, number | boolean | string | null> =
+					{}
 				for (const field of ratingFields) {
 					const draft = drafts[id]?.[field.key]
 					if (draft === undefined) continue
@@ -122,6 +130,16 @@ export function SpectrumTable({
 							`${game.title}: paid price must be between 0 and 999999.99 USD, with at most two decimal places.`
 						)
 					else values.paidPriceCents = Math.round(amount * 100)
+				}
+				const storeUrl = drafts[id]?.storeUrl
+				if (storeUrl !== undefined) {
+					const store = getStorefront(storeUrl)
+					if (!storeUrl.trim()) values.storeUrl = null
+					else if (!store)
+						throw new Error(
+							`${game.title}: use a Steam, Epic, GOG, App Store, or Google Play game URL.`
+						)
+					else values.storeUrl = store.url
 				}
 				if (visibility[id] !== undefined) values.hidden = visibility[id]
 				return { id, title: game.title, values }
@@ -284,24 +302,26 @@ export function SpectrumTable({
 								scope="col"
 								rowSpan={2}
 								className={styles.price}
-								title="Steam US price; updates when viewed, cached for 15 minutes."
+								title={
+									editable
+										? "US storefront price; updates when viewed, cached for 15 minutes."
+										: "Recorded paid amount in USD, or the current storefront price when unset."
+								}
 							>
-								Current price
-								<span className={styles.currency}>
-									USD · Steam
-								</span>
+								{editable ? "Current price" : "Price"}
+								{editable && (
+									<span className={styles.currency}>USD</span>
+								)}
 							</th>
 							{editable && (
 								<th
 									scope="col"
 									rowSpan={2}
 									className={styles.paid}
-									title="Defaults to the regular Steam price until edited. Paid amounts are private."
+									title="Defaults to the regular store price until edited. Your saved amount is shown on your public profile; otherwise it uses the current price."
 								>
 									Paid
-									<span className={styles.currency}>
-										USD · private
-									</span>
+									<span className={styles.currency}>USD</span>
 								</th>
 							)}
 						</tr>
@@ -314,10 +334,11 @@ export function SpectrumTable({
 											key={field.key}
 											className={styles.field}
 										>
-											<details className={styles.help}>
-												<summary
-													title={field.description}
-												>
+											<details
+												className={styles.help}
+												name={`${formId}-rating-help`}
+											>
+												<summary>
 													<span>{field.label}</span>
 													<span
 														className={styles.limit}
@@ -402,7 +423,7 @@ export function SpectrumTable({
 								if (!nextCell) break
 								const next =
 									nextCell.querySelector<HTMLInputElement>(
-										"input:not(:disabled):not([readonly])"
+										"input[type=number]:not(:disabled):not([readonly]), input[type=checkbox]:not(:disabled):not([readonly])"
 									)
 								if (next) {
 									next.focus({ preventScroll: true })

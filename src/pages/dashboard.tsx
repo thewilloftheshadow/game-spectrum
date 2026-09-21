@@ -4,6 +4,7 @@ import { Link } from "react-router"
 import { SpectrumTable, type SpectrumGame } from "~/components/spectrum-table"
 import { CopyProfileLink } from "~/components/copy-profile-link"
 import { myProfileQuery } from "~/lib/profile"
+import { getStorefront } from "~/lib/storefront"
 import type { syncSteamPlaytime } from "~/server/steam"
 import { apiJson, apiQueryOptions } from "~/lib/api-client"
 import type { gamePayload } from "~/server/api/context"
@@ -253,7 +254,9 @@ export default function DashboardPage() {
 											<span>
 												{game.source === "steam"
 													? "Steam"
-													: "IGDB"}
+													: (getStorefront(
+															game.storeUrl
+														)?.label ?? "IGDB")}
 												{game.releaseYear
 													? ` / ${game.releaseYear}`
 													: ""}
