@@ -34,7 +34,7 @@ export default function Root() {
 		activityLaunch ||
 		["/activity", "/dashboard"].includes(pathname.replace(/\/+$/, ""))
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<meta charSet="utf-8" />
 				<meta
@@ -60,7 +60,7 @@ export function ErrorBoundary() {
 	const error = useRouteError()
 	const notFound = isRouteErrorResponse(error) && error.status === 404
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<meta charSet="utf-8" />
 				<meta
