@@ -1,4 +1,5 @@
 import { Fragment, memo } from "react"
+import { Image } from "~/components/image"
 import { Link } from "~/components/link"
 import { calculateScore, ratingFields, ratingGroups } from "~/lib/scoring"
 import { getStorefront } from "~/lib/storefront"
@@ -68,7 +69,7 @@ export const SpectrumRow = memo(function SpectrumRow({
 			<th scope="row" className={styles.game}>
 				<div className={styles.identity}>
 					{entry.coverUrl && (
-						<img
+						<Image
 							src={entry.coverUrl}
 							alt=""
 							width={48}

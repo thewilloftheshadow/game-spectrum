@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
-import { SpectrumTable, type SpectrumGame } from "~/components/spectrum-table"
 import { CopyProfileLink } from "~/components/copy-profile-link"
+import { Image } from "~/components/image"
+import { SpectrumTable, type SpectrumGame } from "~/components/spectrum-table"
 import { myProfileQuery } from "~/lib/profile"
 import { getStorefront } from "~/lib/storefront"
 import type { syncSteamPlaytime } from "~/server/steam"
@@ -239,7 +240,7 @@ export default function DashboardPage() {
 										key={`${game.source}-${game.steamAppId ?? game.igdbId}`}
 									>
 										{game.coverUrl ? (
-											<img
+											<Image
 												src={game.coverUrl}
 												alt=""
 												width={70}

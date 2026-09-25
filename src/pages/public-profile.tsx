@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { Link, useParams } from "react-router"
 import { useState } from "react"
 import { CopyProfileLink } from "~/components/copy-profile-link"
+import { Image } from "~/components/image"
 import { authClient } from "~/lib/auth-client"
 import { myProfileQuery } from "~/lib/profile"
 import { SpectrumTable } from "~/components/spectrum-table"
@@ -56,7 +57,7 @@ export default function PublicProfilePage({
 	return (
 		<main id="main" className={styles.page}>
 			<header className={styles.profile}>
-				{avatar && <img src={avatar} alt="" width={56} height={56} />}
+				{avatar && <Image src={avatar} alt="" width={56} height={56} />}
 				<div className={styles.identity}>
 					<h1>{data.profile.displayName}</h1>
 					<p className={styles.count}>

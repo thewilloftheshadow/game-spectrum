@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { apiQueryOptions } from "~/lib/api-client"
 import type { SpectrumGame } from "~/components/spectrum-table"
 import { type LoaderFunctionArgs, Link, useLoaderData } from "react-router"
+import { Image } from "~/components/image"
 import { ActivityBootstrap } from "~/pages/activity"
 import { authClient } from "~/lib/auth-client"
 import { cloudflareContext } from "~/lib/router-context"
@@ -71,20 +72,12 @@ export default function HomePage() {
 		<main id="main">
 			<section className={styles.hero}>
 				{active.image && (
-					<img
+					<Image
 						key={active.image}
 						className={styles.art}
 						src={active.image}
+						fallbackSrc={active.fallbackImage}
 						alt={`${active.title} artwork`}
-						onError={(event) => {
-							if (
-								active.fallbackImage &&
-								event.currentTarget.getAttribute("src") !==
-									active.fallbackImage
-							)
-								event.currentTarget.src = active.fallbackImage
-							else event.currentTarget.hidden = true
-						}}
 						width={1300}
 						height={419}
 						fetchPriority="high"
@@ -118,22 +111,12 @@ export default function HomePage() {
 						onClick={() => setSelected(index)}
 					>
 						{game.image && (
-							<img
+							<Image
 								src={game.image}
+								fallbackSrc={game.fallbackImage}
 								alt=""
 								width={86}
 								height={58}
-								onError={(event) => {
-									if (
-										game.fallbackImage &&
-										event.currentTarget.getAttribute(
-											"src"
-										) !== game.fallbackImage
-									)
-										event.currentTarget.src =
-											game.fallbackImage
-									else event.currentTarget.hidden = true
-								}}
 							/>
 						)}
 						<span>{game.title}</span>
