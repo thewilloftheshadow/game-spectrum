@@ -6,7 +6,6 @@ import { type LoaderFunctionArgs, Link, useLoaderData } from "react-router"
 import { ActivityBootstrap } from "~/pages/activity"
 import { authClient } from "~/lib/auth-client"
 import { cloudflareContext } from "~/lib/router-context"
-import ui from "~/styles/ui.module.css"
 import styles from "./home.module.css"
 
 const getSecret = (env: Cloudflare.Env, name: string) =>
@@ -98,7 +97,7 @@ export default function HomePage() {
 						Spectrum
 					</h1>
 					<Link
-						className={ui.button}
+						className="button"
 						to={session ? "/dashboard" : "/login"}
 					>
 						{session ? "My library" : "Create a list"}

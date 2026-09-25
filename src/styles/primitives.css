@@ -179,7 +179,7 @@
 	);
 	opacity: 0.55;
 }
-.srOnly {
+.sr-only {
 	position: absolute;
 	width: 1px;
 	height: 1px;

@@ -2,7 +2,6 @@ import { useState } from "react"
 import { Link, Navigate, useSearchParams } from "react-router"
 import { authClient } from "~/lib/auth-client"
 import { PlatformIcon } from "~/components/platform-icon"
-import ui from "~/styles/ui.module.css"
 import styles from "./login.module.css"
 
 export function meta() {
@@ -93,7 +92,7 @@ export default function LoginPage() {
 					)}
 				</div>
 				{(error || params.has("error")) && (
-					<p role="alert" className={ui.error}>
+					<p role="alert" className="error">
 						{error || "Sign-in failed. Please try again."}
 					</p>
 				)}

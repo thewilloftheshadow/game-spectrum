@@ -6,7 +6,6 @@ import { apiJson } from "~/lib/api-client"
 import { myProfileQuery } from "~/lib/profile"
 import type { profilePayload } from "~/server/api/profile"
 import type { profiles } from "~/server/db/schema"
-import ui from "~/styles/ui.module.css"
 import styles from "./profile-settings.module.css"
 
 export function meta() {
@@ -43,22 +42,19 @@ export default function ProfileSettingsPage() {
 	const profile = me.data?.data.profile
 	const visibilityChange = save.variables?.isPublic !== undefined
 	return (
-		<main id="main" className={`${ui.page} ${ui.narrow}`}>
-			<div className={ui.heading}>
-				<h1 className={ui.title}>My profile</h1>
+		<main id="main" className="page narrow">
+			<div className="heading">
+				<h1 className="title">My profile</h1>
 				{profile?.isPublic && (
-					<div className={ui.actions}>
-						<Link
-							className={ui.secondary}
-							to={`/u/${profile.slug}`}
-						>
+					<div className="actions">
+						<Link className="secondary" to={`/u/${profile.slug}`}>
 							View profile
 						</Link>
 						<CopyProfileLink slug={profile.slug} />
 					</div>
 				)}
 			</div>
-			<nav className={ui.tabs} aria-label="Account settings">
+			<nav className="tabs" aria-label="Account settings">
 				<NavLink to="/accounts" end>
 					Connections
 				</NavLink>
@@ -66,13 +62,13 @@ export default function ProfileSettingsPage() {
 			</nav>
 			{me.isPending && (
 				<div
-					className={ui.skeleton}
+					className="skeleton"
 					aria-label="Loading profile"
 					aria-busy="true"
 				/>
 			)}
 			{me.error && (
-				<p className={ui.error} role="alert">
+				<p className="error" role="alert">
 					{me.error.message}
 				</p>
 			)}
@@ -83,7 +79,7 @@ export default function ProfileSettingsPage() {
 						aria-label="Profile sharing"
 					>
 						<div className={styles.visibility}>
-							<label className={ui.checkbox}>
+							<label className="checkbox">
 								<input
 									type="checkbox"
 									checked={
@@ -100,7 +96,7 @@ export default function ProfileSettingsPage() {
 								/>
 								Public profile
 							</label>
-							<span className={ui.status} role="status">
+							<span className="status" role="status">
 								{save.isPending && visibilityChange
 									? "Saving visibility…"
 									: profile.isPublic
@@ -125,13 +121,13 @@ export default function ProfileSettingsPage() {
 							{me.data?.data.library.hidden ?? 0} hidden
 						</p>
 						{save.error && visibilityChange && (
-							<p className={ui.error} role="alert">
+							<p className="error" role="alert">
 								{save.error.message}
 							</p>
 						)}
 					</section>
 					<form
-						className={ui.form}
+						className="form"
 						key={profile.slug}
 						onChange={() => {
 							if (!save.isPending) save.reset()
@@ -160,10 +156,10 @@ export default function ProfileSettingsPage() {
 							className={styles.fields}
 							disabled={save.isPending}
 						>
-							<label className={ui.field}>
+							<label className="field">
 								Display name
 								<input
-									className={ui.input}
+									className="input"
 									name="displayName"
 									autoComplete="nickname"
 									defaultValue={profile.displayName}
@@ -171,12 +167,12 @@ export default function ProfileSettingsPage() {
 									maxLength={80}
 								/>
 							</label>
-							<label className={ui.field}>
+							<label className="field">
 								Profile URL
 								<div className={styles.slug}>
 									<span>/u/</span>
 									<input
-										className={ui.input}
+										className="input"
 										name="slug"
 										defaultValue={profile.slug}
 										pattern="[a-z0-9\-]{2,40}"
@@ -189,19 +185,19 @@ export default function ProfileSettingsPage() {
 									/>
 								</div>
 							</label>
-							<label className={ui.field}>
+							<label className="field">
 								Bio
 								<textarea
-									className={ui.textarea}
+									className="textarea"
 									name="bio"
 									defaultValue={profile.bio}
 									maxLength={800}
 								/>
 							</label>
-							<label className={ui.field}>
+							<label className="field">
 								Favorite genres
 								<input
-									className={ui.input}
+									className="input"
 									name="favoriteGenres"
 									defaultValue={(
 										JSON.parse(
@@ -213,13 +209,13 @@ export default function ProfileSettingsPage() {
 							</label>
 						</fieldset>
 						{save.error && !visibilityChange && (
-							<p className={ui.error} role="alert">
+							<p className="error" role="alert">
 								{save.error.message}
 							</p>
 						)}
-						<div className={ui.actions}>
+						<div className="actions">
 							<button
-								className={ui.button}
+								className="button"
 								disabled={save.isPending}
 								type="submit"
 							>
@@ -227,7 +223,7 @@ export default function ProfileSettingsPage() {
 									? "Saving…"
 									: "Save profile"}
 							</button>
-							<span className={ui.status} role="status">
+							<span className="status" role="status">
 								{save.isSuccess && !visibilityChange
 									? "Profile saved"
 									: ""}

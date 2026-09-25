@@ -9,7 +9,6 @@ import type { syncSteamPlaytime } from "~/server/steam"
 import { apiJson, apiQueryOptions } from "~/lib/api-client"
 import type { gamePayload } from "~/server/api/context"
 import type { z } from "zod"
-import ui from "~/styles/ui.module.css"
 import styles from "./dashboard.module.css"
 
 export function meta() {
@@ -101,7 +100,7 @@ export default function DashboardPage() {
 
 	return (
 		<main id="main" className={styles.page}>
-			<h1 className={ui.srOnly}>My Library</h1>
+			<h1 className="sr-only">My Library</h1>
 			<SpectrumTable
 				entries={all}
 				visibleEntries={filtered}
@@ -118,9 +117,9 @@ export default function DashboardPage() {
 							Home
 						</Link>
 						<label className={styles.find}>
-							<span className={ui.srOnly}>Search library</span>
+							<span className="sr-only">Search library</span>
 							<input
-								className={ui.input}
+								className="input"
 								type="search"
 								placeholder="Search library"
 								value={find}
@@ -130,9 +129,9 @@ export default function DashboardPage() {
 							/>
 						</label>
 						<label className={styles.filter}>
-							<span className={ui.srOnly}>Library filter</span>
+							<span className="sr-only">Library filter</span>
 							<select
-								className={ui.select}
+								className="select"
 								value={filter}
 								onChange={(event) =>
 									setFilter(event.target.value)
@@ -148,11 +147,11 @@ export default function DashboardPage() {
 							</select>
 						</label>
 						<div className={styles.actions}>
-							<Link to="/import" className={ui.secondary}>
+							<Link to="/import" className="secondary">
 								Import
 							</Link>
 							<button
-								className={ui.secondary}
+								className="secondary"
 								type="button"
 								aria-expanded={adding}
 								aria-controls="add-games"
@@ -162,7 +161,7 @@ export default function DashboardPage() {
 							</button>
 							{me.data?.data.user.steamId && (
 								<button
-									className={ui.secondary}
+									className="secondary"
 									type="button"
 									disabled={sync.isPending}
 									aria-label="Sync Steam playtime"
@@ -176,7 +175,7 @@ export default function DashboardPage() {
 											: "Sync playtime"}
 								</button>
 							)}
-							<Link to="/accounts/profile" className={ui.quiet}>
+							<Link to="/accounts/profile" className="quiet">
 								Profile
 							</Link>
 							{me.data?.data.profile?.isPublic && (
@@ -192,13 +191,13 @@ export default function DashboardPage() {
 			>
 				{sync.error && (
 					<div className={styles.status}>
-						<p className={ui.error} role="alert">
+						<p className="error" role="alert">
 							{sync.error.message}
 						</p>
 					</div>
 				)}
 				{sync.isSuccess && (
-					<span className={ui.srOnly} role="status">
+					<span className="sr-only" role="status">
 						Playtime synced for {sync.data.data.updated} games.
 					</span>
 				)}
@@ -208,10 +207,10 @@ export default function DashboardPage() {
 						className={styles.add}
 						aria-label="Add game"
 					>
-						<label className={ui.field}>
+						<label className="field">
 							Find a game
 							<input
-								className={ui.input}
+								className="input"
 								type="search"
 								autoFocus
 								value={query}
@@ -221,12 +220,12 @@ export default function DashboardPage() {
 							/>
 						</label>
 						{search.isFetching && (
-							<p className={ui.status} role="status">
+							<p className="status" role="status">
 								Searching…
 							</p>
 						)}
 						{search.error && (
-							<p className={ui.error} role="alert">
+							<p className="error" role="alert">
 								Search unavailable. You can still add a game
 								manually.
 							</p>
@@ -263,7 +262,7 @@ export default function DashboardPage() {
 											</span>
 										</div>
 										<button
-											className={ui.secondary}
+											className="secondary"
 											type="button"
 											disabled={add.isPending}
 											onClick={() => add.mutate(game)}
@@ -277,7 +276,7 @@ export default function DashboardPage() {
 							<div className={styles.manual}>
 								<span>{query.trim()}</span>
 								<button
-									className={ui.secondary}
+									className="secondary"
 									type="button"
 									disabled={add.isPending}
 									onClick={() =>
@@ -292,7 +291,7 @@ export default function DashboardPage() {
 							</div>
 						)}
 						{add.error && (
-							<p className={ui.error} role="alert">
+							<p className="error" role="alert">
 								{add.error.message}
 							</p>
 						)}
@@ -304,11 +303,11 @@ export default function DashboardPage() {
 					</p>
 				) : entries.error ? (
 					<div className={styles.status}>
-						<p className={ui.error} role="alert">
+						<p className="error" role="alert">
 							Unable to load your library.
 						</p>
 						<button
-							className={ui.secondary}
+							className="secondary"
 							onClick={() => entries.refetch()}
 						>
 							Retry

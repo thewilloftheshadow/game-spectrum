@@ -1,6 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router"
 import { authClient } from "~/lib/auth-client"
-import ui from "~/styles/ui.module.css"
 
 export default function AccountLayout() {
 	const { data: session, isPending, error } = authClient.useSession()
@@ -9,21 +8,21 @@ export default function AccountLayout() {
 		return (
 			<main
 				id="main"
-				className={ui.page}
+				className="page"
 				aria-busy="true"
 				aria-label="Loading account"
 			>
-				<div className={ui.skeleton} />
+				<div className="skeleton" />
 			</main>
 		)
 	if (error)
 		return (
-			<main id="main" className={ui.page}>
-				<p className={ui.error} role="alert">
+			<main id="main" className="page">
+				<p className="error" role="alert">
 					Unable to load your account.
 				</p>
 				<button
-					className={ui.secondary}
+					className="secondary"
 					onClick={() => window.location.reload()}
 				>
 					Retry

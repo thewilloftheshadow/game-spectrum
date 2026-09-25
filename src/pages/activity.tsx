@@ -5,7 +5,6 @@ import {
 	useNavigate
 } from "react-router"
 import { cloudflareContext } from "~/lib/router-context"
-import ui from "~/styles/ui.module.css"
 
 const getSecret = (env: Cloudflare.Env, name: string) =>
 	(env as unknown as Record<string, string | undefined>)[name] ?? null
@@ -102,18 +101,18 @@ export function ActivityBootstrap({ clientId }: { clientId: string | null }) {
 	}, [clientId, navigate])
 
 	return (
-		<main id="main" className={ui.page}>
+		<main id="main" className="page">
 			{error ? (
 				<>
-					<h1 className={ui.title}>Unable to open Game Spectrum</h1>
-					<p className={ui.error} role="alert">
+					<h1 className="title">Unable to open Game Spectrum</h1>
+					<p className="error" role="alert">
 						{error}
 					</p>
 				</>
 			) : (
 				<>
-					<h1 className={ui.title}>Opening Game Spectrum</h1>
-					<div className={ui.skeleton} aria-hidden="true" />
+					<h1 className="title">Opening Game Spectrum</h1>
+					<div className="skeleton" aria-hidden="true" />
 				</>
 			)}
 		</main>

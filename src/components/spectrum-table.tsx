@@ -4,7 +4,6 @@ import { apiJson } from "~/lib/api-client"
 import { ratingFields, ratingGroups } from "~/lib/scoring"
 import { getStorefront } from "~/lib/storefront"
 import type { gameEntries } from "~/server/db/schema"
-import ui from "~/styles/ui.module.css"
 import { SpectrumRow } from "./spectrum-row"
 import styles from "./spectrum-table.module.css"
 
@@ -182,7 +181,7 @@ export function SpectrumTable({
 	})
 	const saveButton = editable ? (
 		<button
-			className={ui.button}
+			className="button"
 			type="submit"
 			form={formId}
 			disabled={changedIds.length === 0 || save.isPending}
@@ -229,9 +228,7 @@ export function SpectrumTable({
 				aria-label={editable ? "Edit game ratings" : "Game ratings"}
 			>
 				<table className={styles.table}>
-					<caption className={ui.srOnly}>
-						Game Spectrum ratings
-					</caption>
+					<caption className="sr-only">Game Spectrum ratings</caption>
 					<thead>
 						<tr className={styles.groups}>
 							<th

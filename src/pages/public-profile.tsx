@@ -7,7 +7,6 @@ import { myProfileQuery } from "~/lib/profile"
 import { SpectrumTable } from "~/components/spectrum-table"
 import { apiQueryOptions } from "~/lib/api-client"
 import type { publicProfile } from "~/server/api/public"
-import ui from "~/styles/ui.module.css"
 import styles from "./public-profile.module.css"
 
 export default function PublicProfilePage({
@@ -32,17 +31,17 @@ export default function PublicProfilePage({
 		return (
 			<main
 				id="main"
-				className={ui.page}
+				className="page"
 				aria-busy="true"
 				aria-label="Loading profile"
 			>
-				<div className={ui.skeleton} />
+				<div className="skeleton" />
 			</main>
 		)
 	if (profile.error || !profile.data)
 		return (
-			<main id="main" className={ui.page}>
-				<h1 className={ui.title}>Profile unavailable</h1>
+			<main id="main" className="page">
+				<h1 className="title">Profile unavailable</h1>
 			</main>
 		)
 	const { data } = profile.data
@@ -75,7 +74,7 @@ export default function PublicProfilePage({
 				<div className={styles.actions}>
 					<CopyProfileLink slug={data.profile.slug} />
 					{owner && (
-						<Link className={ui.quiet} to="/accounts/profile">
+						<Link className="quiet" to="/accounts/profile">
 							Edit profile
 						</Link>
 					)}
@@ -85,11 +84,9 @@ export default function PublicProfilePage({
 				<>
 					<div className={styles.tools}>
 						<label>
-							<span className={ui.srOnly}>
-								Search rated games
-							</span>
+							<span className="sr-only">Search rated games</span>
 							<input
-								className={ui.input}
+								className="input"
 								type="search"
 								placeholder="Search rated games"
 								value={find}
@@ -99,7 +96,7 @@ export default function PublicProfilePage({
 							/>
 						</label>
 						{owner && (
-							<Link className={ui.quiet} to="/dashboard">
+							<Link className="quiet" to="/dashboard">
 								Edit ratings
 							</Link>
 						)}
@@ -118,7 +115,7 @@ export default function PublicProfilePage({
 				<div className={styles.empty}>
 					<p>No completed ratings to share yet.</p>
 					{owner && (
-						<Link className={ui.secondary} to="/dashboard">
+						<Link className="secondary" to="/dashboard">
 							Rate your games
 						</Link>
 					)}

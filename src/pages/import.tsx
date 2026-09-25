@@ -11,7 +11,6 @@ import { PlatformIcon } from "~/components/platform-icon"
 import { apiJson, apiQueryOptions } from "~/lib/api-client"
 import { authClient } from "~/lib/auth-client"
 import type { getConnectedAccounts } from "~/server/api/accounts"
-import ui from "~/styles/ui.module.css"
 import styles from "./import.module.css"
 
 const initialProgress = {
@@ -112,10 +111,10 @@ export default function ImportPage() {
 			])
 	})
 	return (
-		<main id="main" className={`${ui.page} ${ui.narrow}`}>
-			<div className={ui.heading}>
-				<h1 className={ui.title}>Import library</h1>
-				<Link to="/dashboard" className={ui.secondary}>
+		<main id="main" className="page narrow">
+			<div className="heading">
+				<h1 className="title">Import library</h1>
+				<Link to="/dashboard" className="secondary">
 					My Library
 				</Link>
 			</div>
@@ -140,12 +139,12 @@ export default function ImportPage() {
 				</div>
 			</section>
 			{accounts.error && (
-				<p className={ui.error} role="alert">
+				<p className="error" role="alert">
 					{accounts.error.message}
 				</p>
 			)}
 			{(connectionError || params.has("error")) && (
-				<p className={ui.error} role="alert">
+				<p className="error" role="alert">
 					{connectionError ||
 						"Unable to connect Steam. Please try again."}
 				</p>
@@ -177,7 +176,7 @@ export default function ImportPage() {
 						<span>{progress.imported} imported</span>
 					</div>
 					{pending && (
-						<p className={ui.status}>
+						<p className="status">
 							You can use your library while this runs. Keep this
 							tab open.
 						</p>
@@ -190,16 +189,16 @@ export default function ImportPage() {
 						</p>
 					)}
 					{progress.error && (
-						<p className={ui.error} role="alert">
+						<p className="error" role="alert">
 							{progress.error}
 						</p>
 					)}
 				</section>
 			)}
-			<div className={ui.actions}>
+			<div className="actions">
 				{steam ? (
 					<button
-						className={ui.button}
+						className="button"
 						disabled={pending}
 						onClick={() => importSteam.mutate()}
 					>
@@ -213,7 +212,7 @@ export default function ImportPage() {
 					</button>
 				) : (
 					<button
-						className={ui.button}
+						className="button"
 						disabled={
 							connecting || accounts.isPending || !!accounts.error
 						}

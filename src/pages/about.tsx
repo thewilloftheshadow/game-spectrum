@@ -1,5 +1,4 @@
 import { ratingFields } from "~/lib/scoring"
-import ui from "~/styles/ui.module.css"
 import styles from "./about.module.css"
 
 const sheetCopy = `The point of this is to create your own list of games and give them scores. The final score has NOTHING with being a "4/10" or "7.5/10", but rather creating a list to rank the games you have played on which is your fav to least fav.
@@ -17,8 +16,8 @@ GUIDE
 
 export default function AboutPage() {
 	return (
-		<main id="main" className={`${ui.page} ${ui.narrow}`}>
-			<h1 className={ui.title}>About Game Spectrum</h1>
+		<main id="main" className="page narrow">
+			<h1 className="title">About Game Spectrum</h1>
 			<article className={styles.copy}>{sheetCopy}</article>
 			<a
 				className={styles.source}

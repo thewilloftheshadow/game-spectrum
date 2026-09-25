@@ -16,4 +16,5 @@ Keep changes small, direct, and easy to verify.
 - Pushing to `main` automatically triggers production deployment. Treat a push as a deployment action; do not run a separate manual deploy unless explicitly requested.
 - After pushing to `main`, report deployment as triggered, not "not deployed". Only report deployment success after verifying it.
 - Do not create extra types or functions unless they have to be exported.
+- Prefer shared styles over one-off CSS. Reusable primitives live in `src/styles/primitives.css`; CSS Modules should be for page/component-specific layout or genuinely unique styling. If a pattern is used in 2+ places, promote it to a shared primitive instead of duplicating declarations.
 - Follow the KISS principle.

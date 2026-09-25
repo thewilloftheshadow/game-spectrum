@@ -12,8 +12,8 @@ import {
 	useLocation
 } from "react-router"
 import { SiteNav } from "~/components/site-nav"
-import ui from "~/styles/ui.module.css"
 import "./globals.css"
+import "./styles/primitives.css"
 
 export function meta() {
 	return [
@@ -70,13 +70,13 @@ export function ErrorBoundary() {
 				<Links />
 			</head>
 			<body>
-				<main id="main" className={ui.page}>
-					<h1 className={ui.title}>
+				<main id="main" className="page">
+					<h1 className="title">
 						{notFound
 							? "Page not found"
 							: "Unable to load this page"}
 					</h1>
-					<Link to="/" className={ui.secondary}>
+					<Link to="/" className="secondary">
 						Home
 					</Link>
 				</main>

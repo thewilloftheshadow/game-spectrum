@@ -6,7 +6,6 @@ import type { getConnectedAccounts } from "~/server/api/accounts"
 import { authClient } from "~/lib/auth-client"
 import { apiQueryOptions } from "~/lib/api-client"
 import styles from "./accounts.module.css"
-import ui from "~/styles/ui.module.css"
 
 export function meta() {
 	return [{ title: "Accounts | Game Spectrum" }]
@@ -36,11 +35,11 @@ export default function AccountsPage() {
 		}
 	})
 	return (
-		<main id="main" className={`${ui.page} ${ui.narrow}`}>
-			<div className={ui.heading}>
-				<h1 className={ui.title}>Account</h1>
+		<main id="main" className="page narrow">
+			<div className="heading">
+				<h1 className="title">Account</h1>
 				<button
-					className={ui.quiet}
+					className="quiet"
 					disabled={!!pending}
 					onClick={async () => {
 						setPending("signout")
@@ -68,19 +67,19 @@ export default function AccountsPage() {
 					Sign out
 				</button>
 			</div>
-			<nav className={ui.tabs} aria-label="Account settings">
+			<nav className="tabs" aria-label="Account settings">
 				<NavLink to="/accounts" end>
 					Connections
 				</NavLink>
 				<NavLink to="/accounts/profile">Profile</NavLink>
 			</nav>
 			{(error || params.has("error")) && (
-				<p className={ui.error} role="alert">
+				<p className="error" role="alert">
 					{error || "Unable to connect account. Please try again."}
 				</p>
 			)}
 			{accounts.error && (
-				<p className={ui.error} role="alert">
+				<p className="error" role="alert">
 					{accounts.error.message}
 				</p>
 			)}
@@ -95,7 +94,7 @@ export default function AccountsPage() {
 							? "Discord"
 							: "Twitch"
 				return (
-					<section className={ui.row} key={provider}>
+					<section className="row" key={provider}>
 						<div className={styles.identity}>
 							<PlatformIcon provider={provider} />
 							<div>
@@ -126,7 +125,7 @@ export default function AccountsPage() {
 						</div>
 						{!linked ? (
 							<button
-								className={ui.secondary}
+								className="secondary"
 								disabled={
 									!!pending ||
 									accounts.isPending ||
@@ -172,18 +171,18 @@ export default function AccountsPage() {
 									: `Connect ${name}`}
 							</button>
 						) : provider === "steam" ? (
-							<Link to="/import" className={ui.secondary}>
+							<Link to="/import" className="secondary">
 								Import library
 							</Link>
 						) : null}
 					</section>
 				)
 			})}
-			<section className={ui.section}>
-				<div className={ui.heading}>
+			<section className="section">
+				<div className="heading">
 					<h2>Passkeys</h2>
 					<button
-						className={ui.secondary}
+						className="secondary"
 						disabled={!!pending}
 						onClick={async () => {
 							setError("")
@@ -214,23 +213,23 @@ export default function AccountsPage() {
 					</button>
 				</div>
 				{passkeys.error && (
-					<p className={ui.error} role="alert">
+					<p className="error" role="alert">
 						{passkeys.error.message}
 					</p>
 				)}
 				{passkeys.isPending ? (
-					<p className={ui.status}>Loading…</p>
+					<p className="status">Loading…</p>
 				) : passkeys.data?.length === 0 ? (
-					<p className={ui.status}>No passkeys.</p>
+					<p className="status">No passkeys.</p>
 				) : (
 					passkeys.data?.map((key) => (
-						<div className={ui.row} key={key.id}>
+						<div className="row" key={key.id}>
 							<span>{key.name || "Passkey"}</span>
-							<div className={ui.actions}>
+							<div className="actions">
 								{confirmRemove === key.id ? (
 									<>
 										<button
-											className={ui.secondary}
+											className="secondary"
 											disabled={!!pending}
 											onClick={async () => {
 												setPending(key.id)
@@ -268,7 +267,7 @@ export default function AccountsPage() {
 											Confirm removal
 										</button>
 										<button
-											className={ui.quiet}
+											className="quiet"
 											onClick={() =>
 												setConfirmRemove(null)
 											}
@@ -278,7 +277,7 @@ export default function AccountsPage() {
 									</>
 								) : (
 									<button
-										className={ui.quiet}
+										className="quiet"
 										disabled={
 											!accounts.data?.data.length &&
 											(passkeys.data?.length ?? 0) < 2

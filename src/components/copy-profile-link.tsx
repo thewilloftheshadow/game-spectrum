@@ -1,5 +1,4 @@
 import { useState } from "react"
-import ui from "~/styles/ui.module.css"
 import styles from "./copy-profile-link.module.css"
 
 export function CopyProfileLink({
@@ -15,7 +14,7 @@ export function CopyProfileLink({
 		<span className={styles.copy}>
 			<button
 				type="button"
-				className={ui.secondary}
+				className="secondary"
 				title="Copy profile link"
 				aria-label="Copy profile link"
 				onClick={async () => {
@@ -57,14 +56,14 @@ export function CopyProfileLink({
 					"Copy link"
 				)}
 			</button>
-			<span className={ui.srOnly} role="status">
+			<span className="sr-only" role="status">
 				{copied === slug ? "Profile link copied" : ""}
 			</span>
 			{fallback && (
 				<span className={styles.fallback}>
 					<span>Copy this link:</span>
 					<input
-						className={ui.input}
+						className="input"
 						aria-label="Profile link to copy"
 						value={
 							new URL(`/u/${encodeURIComponent(slug)}`, fallback)
@@ -75,7 +74,7 @@ export function CopyProfileLink({
 						onFocus={(event) => event.target.select()}
 					/>
 					<button
-						className={ui.quiet}
+						className="quiet"
 						type="button"
 						onClick={() => setFallback("")}
 					>
