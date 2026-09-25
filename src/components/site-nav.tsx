@@ -19,7 +19,6 @@ export function SiteNav() {
 			<nav className={styles.nav} aria-label="Main navigation">
 				<NavLink to="/dashboard">My Library</NavLink>
 				<NavLink to="/about">About</NavLink>
-				<NavLink to="/terms">Terms</NavLink>
 				{session ? (
 					<NavLink to="/accounts" className={styles.account}>
 						Account
