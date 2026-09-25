@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { getAuth } from "./auth"
 import { activityAuthRoutes } from "./api/activity"
+import { carbonRoutes } from "./api/carbon"
 import { entryRoutes } from "./api/entries"
 import { accountRoutes } from "./api/accounts"
 import { gameRoutes } from "./api/games"
@@ -25,6 +26,7 @@ api.use("/api/*", async (c, next) => {
 
 api.route("/api/auth", activityAuthRoutes)
 api.all("/api/auth/*", (c) => getAuth(c.env).handler(c.req.raw))
+api.route("/api", carbonRoutes)
 api.get("/api", (c) => c.json({ data: { ok: true } }))
 api.route("/api", profileRoutes)
 api.route("/api", accountRoutes)
