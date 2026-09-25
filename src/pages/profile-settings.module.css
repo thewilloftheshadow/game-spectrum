@@ -3,12 +3,6 @@
 	padding: 0 0 24px;
 	border-bottom: 1px solid var(--line);
 }
-.visibility {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
-}
 .hint {
 	margin-top: 14px;
 	font-size: 13px;

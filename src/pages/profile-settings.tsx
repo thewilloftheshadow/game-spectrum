@@ -122,35 +122,25 @@ export default function ProfileSettingsPage() {
 							className={styles.sharing}
 							aria-label="Profile Sharing"
 						>
-							<div className={styles.visibility}>
-								<label className="checkbox">
-									<input
-										type="checkbox"
-										checked={isPublic}
-										onChange={(event) =>
-											setIsPublic(event.target.checked)
-										}
-									/>
-									Show Profile Publicly
-								</label>
-								<span className="status" role="status">
-									{isPublic ? "Public" : "Private"}
-								</span>
-							</div>
+							<label className="checkbox">
+								<input
+									type="checkbox"
+									checked={isPublic}
+									onChange={(event) =>
+										setIsPublic(event.target.checked)
+									}
+								/>
+								Show Profile Publicly
+							</label>
 							<p className={styles.hint}>
 								{isPublic
 									? "Completed ratings are visible at your profile link."
 									: "Your profile link returns “not found” until you make it public."}{" "}
-								Hidden games stay private. Shared games show
-								your saved Paid amount, or the current store
-								price when unset.
 							</p>
 							<p className={styles.counts}>
-								{me.data?.data.library.ready ?? 0}{" "}
-								{isPublic ? "shared" : "ready to share"}
+								{me.data?.data.library.ready ?? 0} rated
 								<span> / </span>
-								{me.data?.data.library.unfinished ?? 0}{" "}
-								unfinished
+								{me.data?.data.library.unfinished ?? 0} unrated
 								<span> / </span>
 								{me.data?.data.library.hidden ?? 0} hidden
 							</p>
