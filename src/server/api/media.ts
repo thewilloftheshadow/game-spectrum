@@ -23,6 +23,14 @@ mediaRoutes.get("/media", async (c) => {
 		return c.json(jsonError("Unsupported media URL."), 400)
 	}
 	if (
+		url.hostname.toLowerCase() === "cdn.akamai.steamstatic.com" &&
+		url.pathname.startsWith("/steam/apps/")
+	) {
+		url = new URL(
+			`https://shared.fastly.steamstatic.com/store_item_assets${url.pathname}${url.search}`
+		)
+	}
+	if (
 		url.href.length > 2048 ||
 		url.protocol !== "https:" ||
 		url.username ||
