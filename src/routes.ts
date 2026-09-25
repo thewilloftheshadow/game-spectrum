@@ -10,6 +10,7 @@ export default [
 	route("activity", "pages/activity.tsx"),
 	route("login", "pages/login.tsx"),
 	route("about", "pages/about.tsx"),
+	route("terms", "pages/terms.tsx"),
 	layout("pages/account-layout.tsx", [
 		route("dashboard", "pages/dashboard.tsx"),
 		route("import", "pages/import.tsx"),
