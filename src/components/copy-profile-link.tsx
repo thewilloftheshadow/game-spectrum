@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { getDiscordSdk } from "~/lib/discord-sdk"
 import styles from "./copy-profile-link.module.css"
 
 export function CopyProfileLink({
@@ -9,19 +10,37 @@ export function CopyProfileLink({
 	compact?: boolean
 }) {
 	const [copied, setCopied] = useState("")
+	const [shared, setShared] = useState("")
 	const [fallback, setFallback] = useState("")
+	const discordSdk = getDiscordSdk()
 	return (
 		<span className={styles.copy}>
 			<button
 				type="button"
 				className="secondary"
-				title="Copy Profile Link"
-				aria-label="Copy Profile Link"
+				title={discordSdk ? "Share Profile Link" : "Copy Profile Link"}
+				aria-label={
+					discordSdk ? "Share Profile Link" : "Copy Profile Link"
+				}
 				onClick={async () => {
 					const url = new URL(
 						`/u/${encodeURIComponent(slug)}`,
 						window.location.origin
 					).href
+					if (discordSdk) {
+						try {
+							const result = await discordSdk.commands.shareLink({
+								custom_id: `profile:${slug}`,
+								message: "Check out my Game Spectrum profile."
+							})
+							setCopied(result.didCopyLink ? slug : "")
+							setShared(result.didSendMessage ? slug : "")
+							setFallback("")
+							return
+						} catch {
+							setShared("")
+						}
+					}
 					try {
 						await navigator.clipboard.writeText(url)
 						setCopied(slug)
@@ -44,20 +63,28 @@ export function CopyProfileLink({
 					>
 						<path
 							d={
-								copied === slug
+								copied === slug || shared === slug
 									? "m3 8 3 3 7-7"
 									: "M6 5h7v9H6zM10 5V2H3v9h3"
 							}
 						/>
 					</svg>
+				) : shared === slug ? (
+					"Shared"
 				) : copied === slug ? (
 					"Copied"
+				) : discordSdk ? (
+					"Share Link"
 				) : (
 					"Copy Link"
 				)}
 			</button>
 			<span className="sr-only" role="status">
-				{copied === slug ? "Profile link copied" : ""}
+				{shared === slug
+					? "Profile link shared"
+					: copied === slug
+						? "Profile link copied"
+						: ""}
 			</span>
 			{fallback && (
 				<span className={styles.fallback}>

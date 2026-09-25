@@ -67,22 +67,27 @@ export function ActivityBootstrap({ clientId }: { clientId: string | null }) {
 				throw new Error("Discord Activity authentication failed.")
 
 			if (!cancelled) {
-				const dashboardUrl = new URL(
-					"/dashboard",
+				const profileShare = /^profile:(.+)$/.exec(
+					discordSdk.customId ?? ""
+				)
+				const destinationUrl = new URL(
+					profileShare
+						? `/u/${encodeURIComponent(profileShare[1])}`
+						: "/dashboard",
 					window.location.origin
 				)
-				dashboardUrl.searchParams.set("activity", "1")
+				destinationUrl.searchParams.set("activity", "1")
 				if (discordSdk.guildId)
-					dashboardUrl.searchParams.set(
+					destinationUrl.searchParams.set(
 						"guild_id",
 						discordSdk.guildId
 					)
 				if (discordSdk.channelId)
-					dashboardUrl.searchParams.set(
+					destinationUrl.searchParams.set(
 						"channel_id",
 						discordSdk.channelId
 					)
-				navigate(`${dashboardUrl.pathname}${dashboardUrl.search}`, {
+				navigate(`${destinationUrl.pathname}${destinationUrl.search}`, {
 					replace: true
 				})
 			}

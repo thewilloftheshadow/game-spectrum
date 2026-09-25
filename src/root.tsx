@@ -30,6 +30,7 @@ export default function Root() {
 		pathname === "/" &&
 		(params.has("frame_id") || params.has("instance_id"))
 	const navHidden =
+		params.get("activity") === "1" ||
 		activityLaunch ||
 		["/activity", "/dashboard"].includes(pathname.replace(/\/+$/, ""))
 	return (
