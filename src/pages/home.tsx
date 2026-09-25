@@ -2,27 +2,20 @@ import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { apiQueryOptions } from "~/lib/api-client"
 import type { SpectrumGame } from "~/components/spectrum-table"
-import { type LoaderFunctionArgs, Link, useLoaderData } from "react-router"
+import { type LoaderFunctionArgs, Link, redirect } from "react-router"
 import { Image } from "~/components/image"
-import { ActivityBootstrap } from "~/pages/activity"
 import { authClient } from "~/lib/auth-client"
-import { cloudflareContext } from "~/lib/router-context"
 import styles from "./home.module.css"
 
-const getSecret = (env: Cloudflare.Env, name: string) =>
-	(env as unknown as Record<string, string | undefined>)[name] ?? null
-
-export function loader({ context, request }: LoaderFunctionArgs) {
+export function loader({ request }: LoaderFunctionArgs) {
 	const url = new URL(request.url)
-	const activityLaunch =
-		url.searchParams.has("frame_id") || url.searchParams.has("instance_id")
-	const { env } = context.get(cloudflareContext)
-	return {
-		activityClientId: activityLaunch
-			? getSecret(env, "DISCORD_CLIENT_ID")
-			: null,
-		activityLaunch
+	if (
+		url.searchParams.has("frame_id") ||
+		url.searchParams.has("instance_id")
+	) {
+		throw redirect(`/activity${url.search}`)
 	}
+	return null
 }
 
 const games = [
@@ -33,7 +26,6 @@ const games = [
 ]
 
 export default function HomePage() {
-	const { activityClientId, activityLaunch } = useLoaderData<typeof loader>()
 	const [selected, setSelected] = useState(0)
 	const { data: session } = authClient.useSession()
 	const entries = useQuery({
@@ -67,7 +59,6 @@ export default function HomePage() {
 			.map((game) => ({ ...game, id: game.title, fallbackImage: null }))
 	].slice(0, 4)
 	const active = featured[selected] ?? featured[0]
-	if (activityLaunch) return <ActivityBootstrap clientId={activityClientId} />
 	return (
 		<main id="main">
 			<section className={styles.hero}>
