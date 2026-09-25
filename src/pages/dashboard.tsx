@@ -174,7 +174,7 @@ export default function DashboardPage() {
 								</button>
 							)}
 							<Link to="/accounts/profile" className="quiet">
-								Profile
+								Settings
 							</Link>
 							{me.data?.data.profile?.isPublic && (
 								<CopyProfileLink
