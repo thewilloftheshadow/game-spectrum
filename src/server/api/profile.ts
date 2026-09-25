@@ -44,10 +44,6 @@ export const profilePayload = z
 			.optional(),
 		displayName: z.string().trim().min(1).max(80).optional(),
 		bio: z.string().max(800).optional(),
-		favoriteGenres: z
-			.array(z.string().trim().min(1).max(30))
-			.max(12)
-			.optional(),
 		isPublic: z.boolean().optional()
 	})
 	.strict()
@@ -102,10 +98,7 @@ profileRoutes.patch("/profile", async (c) => {
 		const profile = await db
 			.update(profiles)
 			.set({
-				...parsed,
-				favoriteGenres: parsed.favoriteGenres
-					? JSON.stringify(parsed.favoriteGenres)
-					: undefined
+				...parsed
 			})
 			.where(eq(profiles.userId, session.user.id))
 			.returning()

@@ -97,13 +97,7 @@ export default function ProfileSettingsPage() {
 										slug: String(form.get("slug") || "")
 											.trim()
 											.toLowerCase(),
-										bio: String(form.get("bio") || ""),
-										favoriteGenres: String(
-											form.get("favoriteGenres") || ""
-										)
-											.split(",")
-											.map((genre) => genre.trim())
-											.filter(Boolean)
+										bio: String(form.get("bio") || "")
 									}
 								: {})
 						})
@@ -168,18 +162,20 @@ export default function ProfileSettingsPage() {
 					>
 						<label className="field">
 							Profile URL
-							<input
-								className="input slug"
-								name="slug"
-								defaultValue={profile.slug}
-								pattern="[a-z0-9\-]{2,40}"
-								required
-								minLength={2}
-								maxLength={40}
-								autoCapitalize="none"
-								spellCheck={false}
-								aria-label="Profile Slug"
-							/>
+							<span className={styles.slug}>
+								<input
+									className={`input ${styles.slugInput}`}
+									name="slug"
+									defaultValue={profile.slug}
+									pattern="[a-z0-9\-]{2,40}"
+									required
+									minLength={2}
+									maxLength={40}
+									autoCapitalize="none"
+									spellCheck={false}
+									aria-label="Profile Slug"
+								/>
+							</span>
 						</label>
 						<label className="field">
 							Bio
@@ -188,19 +184,6 @@ export default function ProfileSettingsPage() {
 								name="bio"
 								defaultValue={profile.bio}
 								maxLength={800}
-							/>
-						</label>
-						<label className="field">
-							Favorite Genres
-							<input
-								className="input"
-								name="favoriteGenres"
-								defaultValue={(
-									JSON.parse(
-										profile.favoriteGenres
-									) as string[]
-								).join(", ")}
-								placeholder="Adventure, Puzzle, RPG"
 							/>
 						</label>
 					</fieldset>

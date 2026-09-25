@@ -41,11 +41,6 @@
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
 }
-.genres {
-	margin-top: 10px;
-	color: var(--muted);
-	font-size: 12px;
-}
 .actions {
 	display: flex;
 	align-items: center;

@@ -46,7 +46,6 @@ export default function PublicProfilePage({
 		)
 	const { data } = profile.data
 	const owner = !!session && me.data?.data.profile?.slug === data.profile.slug
-	const genres = JSON.parse(data.profile.favoriteGenres) as string[]
 	const avatar = data.profile.avatarUrl ?? data.owner.image
 	const filtered = data.entries.filter((entry) =>
 		entry.title.toLowerCase().includes(find.toLowerCase())
@@ -66,9 +65,6 @@ export default function PublicProfilePage({
 					</p>
 					{data.profile.bio && (
 						<p className={styles.bio}>{data.profile.bio}</p>
-					)}
-					{genres.length > 0 && (
-						<p className={styles.genres}>{genres.join(" / ")}</p>
 					)}
 				</div>
 				<div className={styles.actions}>

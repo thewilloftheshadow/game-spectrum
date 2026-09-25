@@ -14,7 +14,6 @@ export const publicProfile = async (env: Cloudflare.Env, userId: string) => {
 				slug: profiles.slug,
 				displayName: profiles.displayName,
 				bio: profiles.bio,
-				favoriteGenres: profiles.favoriteGenres,
 				avatarUrl: profiles.avatarUrl
 			},
 			owner: { image: user.image }
