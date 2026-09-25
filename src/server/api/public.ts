@@ -75,7 +75,8 @@ export const publicProfile = async (env: Cloudflare.Env, userId: string) => {
 			inconsistencyPenalty: entry.inconsistencyPenalty,
 			replayabilityBonus: entry.replayabilityBonus,
 			extraPercent: entry.extraPercent,
-			title: game?.title ?? entry.manualTitle ?? "Untitled game",
+			title: entry.manualTitle ?? game?.title ?? "Untitled game",
+			customCoverUrl: entry.coverUrl,
 			coverUrl: entry.coverUrl ?? game?.coverUrl ?? null,
 			score: calculateScore(entry)
 		}))

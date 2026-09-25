@@ -18,6 +18,7 @@ export type SpectrumGame = Pick<
 > &
 	Partial<Pick<typeof gameEntries.$inferSelect, "paidPriceCents">> & {
 		title: string
+		customCoverUrl: string | null
 		coverUrl: string | null
 		score: number | null
 	}
@@ -48,7 +49,8 @@ export function SpectrumTable({
 				Record<
 					| (typeof ratingFields)[number]["key"]
 					| "paidPrice"
-					| "storeUrl",
+					| "storeUrl"
+					| "title",
 					string
 				>
 			>
@@ -61,7 +63,8 @@ export function SpectrumTable({
 			key:
 				| (typeof ratingFields)[number]["key"]
 				| "paidPrice"
-				| "storeUrl",
+				| "storeUrl"
+				| "title",
 			value: string
 		) => {
 			setDrafts((current) => ({
@@ -89,6 +92,15 @@ export function SpectrumTable({
 					)
 				const values: Record<string, number | boolean | string | null> =
 					{}
+				const title = drafts[id]?.title
+				if (title !== undefined) {
+					if (!title.trim()) values.manualTitle = null
+					else if (title.trim().length > 120)
+						throw new Error(
+							`${game.title}: title must be 120 characters or fewer.`
+						)
+					else values.manualTitle = title.trim()
+				}
 				for (const field of ratingFields) {
 					const draft = drafts[id]?.[field.key]
 					if (draft === undefined) continue

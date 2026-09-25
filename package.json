@@ -20,6 +20,7 @@
 		"db:migrate:remote": "wrangler d1 migrations apply game-spectrum --remote"
 	},
 	"dependencies": {
+		"@base-ui/react": "1.8.0",
 		"@better-auth/drizzle-adapter": "1.7.5",
 		"@better-auth/passkey": "1.7.5",
 		"@discord/embedded-app-sdk": "2.5.0",

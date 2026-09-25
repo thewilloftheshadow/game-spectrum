@@ -47,7 +47,8 @@ entryRoutes.get("/entries", async (c) => {
 					((entry.steamAppId ?? game?.steamAppId)
 						? `https://store.steampowered.com/app/${entry.steamAppId ?? game?.steamAppId}/`
 						: (links.get(game?.igdbId ?? 0) ?? null)),
-				title: game?.title ?? entry.manualTitle ?? "Untitled game",
+				title: entry.manualTitle ?? game?.title ?? "Untitled game",
+				customCoverUrl: entry.coverUrl,
 				coverUrl: entry.coverUrl ?? game?.coverUrl ?? null,
 				score: calculateScore(entry)
 			}))
@@ -107,6 +108,13 @@ entryRoutes.patch("/entries/:id", async (c) => {
 			.object({
 				hidden: z.boolean().optional(),
 				storeUrl: storeUrlSchema.nullable().optional(),
+				manualTitle: z
+					.string()
+					.trim()
+					.min(1)
+					.max(120)
+					.nullable()
+					.optional(),
 				paidPriceCents: z
 					.number()
 					.int()
@@ -126,6 +134,131 @@ entryRoutes.patch("/entries/:id", async (c) => {
 					eq(gameEntries.userId, session.user.id)
 				)
 			)
+		return c.json({ data: { ok: true } })
+	} catch (error) {
+		return c.json(jsonError((error as Error).message), 400)
+	}
+})
+
+entryRoutes.post("/entries/:id/art", async (c) => {
+	try {
+		const session = await requireSession(c.env, c.req.raw.headers)
+		const file = (await c.req.formData()).get("art")
+		if (!(file instanceof File)) {
+			return c.json(jsonError("Choose game artwork."), 400)
+		}
+		if (file.size > 6_000_000) {
+			return c.json(
+				jsonError("Game artwork must be 6 MB or smaller."),
+				400
+			)
+		}
+		const extension = {
+			"image/gif": "gif",
+			"image/jpeg": "jpg",
+			"image/png": "png",
+			"image/webp": "webp"
+		}[file.type]
+		if (!extension) {
+			return c.json(jsonError("Use a PNG, JPG, WebP, or GIF image."), 400)
+		}
+
+		const db = getDb(c.env.DB)
+		const existing = await db
+			.select({ coverUrl: gameEntries.coverUrl })
+			.from(gameEntries)
+			.where(
+				and(
+					eq(gameEntries.id, c.req.param("id")),
+					eq(gameEntries.userId, session.user.id)
+				)
+			)
+			.get()
+		if (!existing) return c.json(jsonError("Game not found.", 404), 404)
+
+		const folder = session.user.id.replace(/[^A-Za-z0-9_-]/g, "_")
+		const key = `game-art/${folder}/${c.req.param("id")}/${crypto.randomUUID()}.${extension}`
+		await c.env.USER_UPLOADS.put(key, file.stream(), {
+			httpMetadata: {
+				cacheControl: "public, max-age=31536000, immutable",
+				contentType: file.type
+			}
+		})
+		const coverUrl = `https://user-uploads.gamespectrum.org/${key}`
+		await db
+			.update(gameEntries)
+			.set({ coverUrl })
+			.where(
+				and(
+					eq(gameEntries.id, c.req.param("id")),
+					eq(gameEntries.userId, session.user.id)
+				)
+			)
+		if (existing.coverUrl) {
+			try {
+				const old = new URL(existing.coverUrl)
+				if (
+					old.hostname === "user-uploads.gamespectrum.org" &&
+					old.pathname.startsWith(
+						`/game-art/${folder}/${c.req.param("id")}/`
+					)
+				) {
+					c.executionCtx.waitUntil(
+						c.env.USER_UPLOADS.delete(old.pathname.slice(1))
+					)
+				}
+			} catch {
+				/* Ignore invalid legacy cover URLs. */
+			}
+		}
+		return c.json({ data: { coverUrl } })
+	} catch (error) {
+		return c.json(jsonError((error as Error).message), 400)
+	}
+})
+
+entryRoutes.delete("/entries/:id/art", async (c) => {
+	try {
+		const session = await requireSession(c.env, c.req.raw.headers)
+		const db = getDb(c.env.DB)
+		const existing = await db
+			.select({ coverUrl: gameEntries.coverUrl })
+			.from(gameEntries)
+			.where(
+				and(
+					eq(gameEntries.id, c.req.param("id")),
+					eq(gameEntries.userId, session.user.id)
+				)
+			)
+			.get()
+		if (!existing) return c.json(jsonError("Game not found.", 404), 404)
+		await db
+			.update(gameEntries)
+			.set({ coverUrl: null })
+			.where(
+				and(
+					eq(gameEntries.id, c.req.param("id")),
+					eq(gameEntries.userId, session.user.id)
+				)
+			)
+		if (existing.coverUrl) {
+			try {
+				const old = new URL(existing.coverUrl)
+				const folder = session.user.id.replace(/[^A-Za-z0-9_-]/g, "_")
+				if (
+					old.hostname === "user-uploads.gamespectrum.org" &&
+					old.pathname.startsWith(
+						`/game-art/${folder}/${c.req.param("id")}/`
+					)
+				) {
+					c.executionCtx.waitUntil(
+						c.env.USER_UPLOADS.delete(old.pathname.slice(1))
+					)
+				}
+			} catch {
+				/* Ignore invalid legacy cover URLs. */
+			}
+		}
 		return c.json({ data: { ok: true } })
 	} catch (error) {
 		return c.json(jsonError((error as Error).message), 400)

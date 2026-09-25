@@ -11,18 +11,12 @@ export function SpectrumPrices({
 	entry,
 	storeUrl,
 	editable,
-	draft,
-	onChange,
-	formId,
-	disabled
+	draft
 }: {
 	entry: SpectrumGame
 	storeUrl: string | null
 	editable: boolean
 	draft?: string
-	onChange: (id: string, key: "paidPrice", value: string) => void
-	formId: string
-	disabled: boolean
 }) {
 	const cell = useRef<HTMLTableCellElement>(null)
 	const [nearViewport, setNearViewport] = useState(false)
@@ -115,30 +109,21 @@ export function SpectrumPrices({
 				)}
 			</td>
 			{editable && (
-				<td className={styles.paid}>
-					<input
-						form={formId}
-						type="number"
-						min="0"
-						max="999999.99"
-						step="0.01"
-						inputMode="decimal"
-						aria-label={`${entry.title}: Paid Price In USD`}
-						title={
-							entry.paidPriceCents == null && draft === undefined
-								? "Default: regular store price, not your purchase history. Enter what you paid to show it publicly; otherwise your profile uses the current store price."
-								: "Amount you paid in USD, shown on your public profile. Clear to use the current store price there."
-						}
-						value={
-							draft ??
-							(paid == null ? "" : (paid / 100).toFixed(2))
-						}
-						placeholder="—"
-						disabled={disabled}
-						onChange={(event) =>
-							onChange(entry.id, "paidPrice", event.target.value)
-						}
-					/>
+				<td
+					className={styles.paid}
+					title={
+						entry.paidPriceCents == null && draft === undefined
+							? "Default: regular store price, not your purchase history. Edit details to enter what you paid."
+							: "Amount you paid in USD, shown on your public profile."
+					}
+				>
+					{draft !== undefined
+						? draft.trim() && Number.isFinite(Number(draft))
+							? `$${Number(draft).toFixed(2)}`
+							: "Current"
+						: paid == null
+							? "—"
+							: `$${(paid / 100).toFixed(2)}`}
 				</td>
 			)}
 		</>

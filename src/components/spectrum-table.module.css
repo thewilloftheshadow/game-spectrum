@@ -84,51 +84,75 @@
 	color: var(--accent);
 	text-decoration: underline;
 }
-.storePicker {
-	position: relative;
-}
-.storePicker summary {
-	cursor: pointer;
-	list-style: none;
+.detailsTrigger {
+	border: 0;
+	padding: 0;
+	background: transparent;
 	color: var(--muted);
+	font: inherit;
+	text-decoration: underline;
+	text-decoration-style: dotted;
+	text-underline-offset: 3px;
 }
-.storePicker summary:hover {
+.detailsTrigger:hover {
 	color: var(--accent);
 }
-.storePicker summary::-webkit-details-marker {
-	display: none;
+.dialogBackdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 20;
+	background: rgb(0 0 0 / 0.62);
 }
-.table .game:has(.storePicker[open]) {
-	z-index: 4;
-}
-.storePicker > div {
-	position: absolute;
-	top: calc(100% + 8px);
-	left: 0;
-	width: min(340px, calc(100vw - 24px));
-	padding: 14px;
+.dialogPopup {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	z-index: 21;
+	display: grid;
+	gap: 18px;
+	width: min(560px, calc(100vw - 32px));
+	max-height: min(720px, calc(100vh - 32px));
+	overflow: auto;
+	padding: 22px;
 	border: 1px solid var(--line);
 	background: var(--raised);
-	color: var(--text);
-	font-size: 12px;
+	box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
+	transform: translate(-50%, -50%);
+}
+.dialogHeader {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+.dialogTitle {
+	font-size: 20px;
+	font-weight: 500;
+}
+.dialogDescription {
+	color: var(--muted);
+	font-size: 13px;
 	line-height: 1.5;
 }
-.storePicker label {
+.dialogFields {
 	display: grid;
-	gap: 8px;
+	gap: 18px;
 }
-.storePicker input {
-	width: 100%;
-	min-width: 0;
-	border: 1px solid var(--line);
+.artField {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.artField input[type="file"] {
+	flex: 1 1 220px;
+}
+.artPreview {
+	width: 96px;
+	height: 58px;
+	object-fit: cover;
 	border-radius: 2px;
 	background: var(--surface);
-	color: var(--text);
-	padding: 9px;
-}
-.storePicker p {
-	margin-top: 10px;
-	color: var(--muted);
 }
 .meta {
 	display: flex;
@@ -285,7 +309,8 @@
 	padding: 12px;
 }
 .table td.hours,
-.table td.price {
+.table td.price,
+.table td.paid {
 	padding: 12px;
 }
 .price a {
