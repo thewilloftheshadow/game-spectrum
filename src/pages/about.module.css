@@ -25,9 +25,11 @@
 .scoring h3 {
 	font-size: 17px;
 	margin: 30px 0 16px;
+	text-decoration: underline;
+	text-underline-offset: 4px;
 }
 .scoring dl > div {
-	padding: 15px 0;
+	padding: 8px 0;
 	border-bottom: 1px solid var(--line);
 }
 .scoring dt {
@@ -48,5 +50,9 @@
 	margin-top: 10px;
 }
 .scoring .formula {
+	font-family: ui-monospace;
 	color: var(--text);
+}
+.scoring section {
+	padding-bottom: 12px;
 }
