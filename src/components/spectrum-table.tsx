@@ -185,7 +185,7 @@ export function SpectrumTable({
 			type="submit"
 			form={formId}
 			disabled={changedIds.length === 0 || save.isPending}
-			aria-label={`Save changes to ${changedIds.length} games`}
+			aria-label={`Save Changes To ${changedIds.length} Games`}
 		>
 			{save.isPending
 				? "Saving…"
@@ -225,10 +225,10 @@ export function SpectrumTable({
 			<div
 				className={`${styles.frame} ${className ?? ""}`}
 				role="region"
-				aria-label={editable ? "Edit game ratings" : "Game ratings"}
+				aria-label={editable ? "Edit Game Ratings" : "Game Ratings"}
 			>
 				<table className={styles.table}>
-					<caption className="sr-only">Game Spectrum ratings</caption>
+					<caption className="sr-only">Game Spectrum Ratings</caption>
 					<thead>
 						<tr className={styles.groups}>
 							<th
@@ -273,7 +273,7 @@ export function SpectrumTable({
 											rowSpan={2}
 											className={styles.total}
 										>
-											Base total<span> / 100</span>
+											Base Total<span> / 100</span>
 										</th>
 									)}
 								</Fragment>
@@ -293,7 +293,7 @@ export function SpectrumTable({
 								className={styles.hours}
 								title="Synced from Steam every 48 hours, or use Sync playtime."
 							>
-								Hours played
+								Hours Played
 							</th>
 							<th
 								scope="col"
@@ -305,7 +305,7 @@ export function SpectrumTable({
 										: "Recorded paid amount in USD, or the current storefront price when unset."
 								}
 							>
-								{editable ? "Current price" : "Price"}
+								{editable ? "Current Price" : "Price"}
 								{editable && (
 									<span className={styles.currency}>USD</span>
 								)}

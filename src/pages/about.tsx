@@ -40,7 +40,7 @@ export default function AboutPage() {
 				target="_blank"
 				rel="noreferrer"
 			>
-				Original template spreadsheet
+				Original Template Spreadsheet
 			</a>
 			<section className={styles.scoring} aria-labelledby="scoring-title">
 				<h2 id="scoring-title">Scoring</h2>

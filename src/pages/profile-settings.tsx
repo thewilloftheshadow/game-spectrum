@@ -9,7 +9,7 @@ import type { profiles } from "~/server/db/schema"
 import styles from "./profile-settings.module.css"
 
 export function meta() {
-	return [{ title: "Profile settings | Game Spectrum" }]
+	return [{ title: "Profile Settings | Game Spectrum" }]
 }
 
 export default function ProfileSettingsPage() {
@@ -44,17 +44,17 @@ export default function ProfileSettingsPage() {
 	return (
 		<main id="main" className="page narrow">
 			<div className="heading">
-				<h1 className="title">My profile</h1>
+				<h1 className="title">My Profile</h1>
 				{profile?.isPublic && (
 					<div className="actions">
 						<Link className="secondary" to={`/u/${profile.slug}`}>
-							View profile
+							View Profile
 						</Link>
 						<CopyProfileLink slug={profile.slug} />
 					</div>
 				)}
 			</div>
-			<nav className="tabs" aria-label="Account settings">
+			<nav className="tabs" aria-label="Account Settings">
 				<NavLink to="/accounts" end>
 					Connections
 				</NavLink>
@@ -94,11 +94,11 @@ export default function ProfileSettingsPage() {
 										})
 									}
 								/>
-								Public profile
+								Show Profile Publicly
 							</label>
 							<span className="status" role="status">
 								{save.isPending && visibilityChange
-									? "Saving visibility…"
+									? "Saving Visibility…"
 									: profile.isPublic
 										? "Public"
 										: "Private"}
@@ -157,7 +157,7 @@ export default function ProfileSettingsPage() {
 							disabled={save.isPending}
 						>
 							<label className="field">
-								Display name
+								Display Name
 								<input
 									className="input"
 									name="displayName"
@@ -181,7 +181,7 @@ export default function ProfileSettingsPage() {
 										maxLength={40}
 										autoCapitalize="none"
 										spellCheck={false}
-										aria-label="Profile slug"
+										aria-label="Profile Slug"
 									/>
 								</div>
 							</label>
@@ -195,7 +195,7 @@ export default function ProfileSettingsPage() {
 								/>
 							</label>
 							<label className="field">
-								Favorite genres
+								Favorite Genres
 								<input
 									className="input"
 									name="favoriteGenres"
@@ -204,7 +204,7 @@ export default function ProfileSettingsPage() {
 											profile.favoriteGenres
 										) as string[]
 									).join(", ")}
-									placeholder="Adventure, puzzle, RPG"
+									placeholder="Adventure, Puzzle, RPG"
 								/>
 							</label>
 						</fieldset>
@@ -221,11 +221,11 @@ export default function ProfileSettingsPage() {
 							>
 								{save.isPending && !visibilityChange
 									? "Saving…"
-									: "Save profile"}
+									: "Save Profile"}
 							</button>
 							<span className="status" role="status">
 								{save.isSuccess && !visibilityChange
-									? "Profile saved"
+									? "Profile Saved"
 									: ""}
 							</span>
 						</div>

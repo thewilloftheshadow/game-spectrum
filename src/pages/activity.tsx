@@ -104,7 +104,7 @@ export function ActivityBootstrap({ clientId }: { clientId: string | null }) {
 		<main id="main" className="page">
 			{error ? (
 				<>
-					<h1 className="title">Unable to open Game Spectrum</h1>
+					<h1 className="title">Unable To Open Game Spectrum</h1>
 					<p className="error" role="alert">
 						{error}
 					</p>

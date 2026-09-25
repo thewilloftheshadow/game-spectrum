@@ -106,9 +106,9 @@ export function SpectrumPrices({
 						className={styles.priceRetry}
 						type="button"
 						onClick={() => query.refetch()}
-						aria-label={`Retry price for ${entry.title}`}
+						aria-label={`Retry Price For ${entry.title}`}
 					>
-						Retry price
+						Retry Price
 					</button>
 				) : (
 					"—"
@@ -123,7 +123,7 @@ export function SpectrumPrices({
 						max="999999.99"
 						step="0.01"
 						inputMode="decimal"
-						aria-label={`${entry.title}: paid price in USD`}
+						aria-label={`${entry.title}: Paid Price In USD`}
 						title={
 							entry.paidPriceCents == null && draft === undefined
 								? "Default: regular store price, not your purchase history. Enter what you paid to show it publicly; otherwise your profile uses the current store price."

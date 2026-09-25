@@ -5,7 +5,7 @@ import { PlatformIcon } from "~/components/platform-icon"
 import styles from "./login.module.css"
 
 export function meta() {
-	return [{ title: "Sign in | Game Spectrum" }]
+	return [{ title: "Sign In | Game Spectrum" }]
 }
 
 export default function LoginPage() {
@@ -25,7 +25,7 @@ export default function LoginPage() {
 		<main id="main" className={styles.page}>
 			<div className={styles.art} aria-hidden="true" />
 			<section className={styles.form}>
-				<h1>Sign in</h1>
+				<h1>Sign In</h1>
 				<div className={styles.providers}>
 					{(["steam", "discord", "twitch", "passkey"] as const).map(
 						(provider) => (
@@ -76,8 +76,8 @@ export default function LoginPage() {
 								<PlatformIcon provider={provider} />
 								<span>
 									{provider === "passkey"
-										? "Use a passkey"
-										: `Continue with ${provider === "steam" ? "Steam" : provider === "discord" ? "Discord" : "Twitch"}`}
+										? "Use A Passkey"
+										: `Continue With ${provider === "steam" ? "Steam" : provider === "discord" ? "Discord" : "Twitch"}`}
 								</span>
 								{pending === provider && (
 									<span
@@ -97,7 +97,7 @@ export default function LoginPage() {
 					</p>
 				)}
 				<Link className={styles.back} to="/">
-					Back to home
+					Back To Home
 				</Link>
 			</section>
 		</main>

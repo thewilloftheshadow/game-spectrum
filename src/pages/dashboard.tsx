@@ -111,17 +111,17 @@ export default function DashboardPage() {
 					<header
 						ref={toolbarRef}
 						className={styles.toolbar}
-						aria-label="Library controls"
+						aria-label="Library Controls"
 					>
 						<Link to="/" className={styles.home}>
 							Home
 						</Link>
 						<label className={styles.find}>
-							<span className="sr-only">Search library</span>
+							<span className="sr-only">Search Library</span>
 							<input
 								className="input"
 								type="search"
-								placeholder="Search library"
+								placeholder="Search Library"
 								value={find}
 								onChange={(event) =>
 									setFind(event.target.value)
@@ -129,7 +129,7 @@ export default function DashboardPage() {
 							/>
 						</label>
 						<label className={styles.filter}>
-							<span className="sr-only">Library filter</span>
+							<span className="sr-only">Library Filter</span>
 							<select
 								className="select"
 								value={filter}
@@ -157,14 +157,14 @@ export default function DashboardPage() {
 								aria-controls="add-games"
 								onClick={() => setAdding(!adding)}
 							>
-								{adding ? "Close search" : "Add game"}
+								{adding ? "Close Search" : "Add Game"}
 							</button>
 							{me.data?.data.user.steamId && (
 								<button
 									className="secondary"
 									type="button"
 									disabled={sync.isPending}
-									aria-label="Sync Steam playtime"
+									aria-label="Sync Steam Playtime"
 									title={`Updates automatically every 48 hours. Last synced: ${me.data.data.profile?.playtimeSyncedAt ? new Date(String(me.data.data.profile.playtimeSyncedAt)).toLocaleString() : "never"}`}
 									onClick={() => sync.mutate()}
 								>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
 										? "Syncing…"
 										: sync.isSuccess
 											? "Synced"
-											: "Sync playtime"}
+											: "Sync Playtime"}
 								</button>
 							)}
 							<Link to="/accounts/profile" className="quiet">
@@ -205,10 +205,10 @@ export default function DashboardPage() {
 					<section
 						id="add-games"
 						className={styles.add}
-						aria-label="Add game"
+						aria-label="Add Game"
 					>
 						<label className="field">
-							Find a game
+							Find A Game
 							<input
 								className="input"
 								type="search"
@@ -286,7 +286,7 @@ export default function DashboardPage() {
 										})
 									}
 								>
-									Add manually
+									Add Manually
 								</button>
 							</div>
 						)}
@@ -299,7 +299,7 @@ export default function DashboardPage() {
 				)}
 				{entries.isPending ? (
 					<p className={styles.status} role="status">
-						Loading library…
+						Loading Library…
 					</p>
 				) : entries.error ? (
 					<div className={styles.status}>

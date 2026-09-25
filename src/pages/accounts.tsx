@@ -64,10 +64,10 @@ export default function AccountsPage() {
 						}
 					}}
 				>
-					Sign out
+					Sign Out
 				</button>
 			</div>
-			<nav className="tabs" aria-label="Account settings">
+			<nav className="tabs" aria-label="Account Settings">
 				<NavLink to="/accounts" end>
 					Connections
 				</NavLink>
@@ -172,7 +172,7 @@ export default function AccountsPage() {
 							</button>
 						) : provider === "steam" ? (
 							<Link to="/import" className="secondary">
-								Import library
+								Import Library
 							</Link>
 						) : null}
 					</section>
@@ -209,7 +209,7 @@ export default function AccountsPage() {
 							}
 						}}
 					>
-						Add passkey
+						Add Passkey
 					</button>
 				</div>
 				{passkeys.error && (
@@ -220,7 +220,7 @@ export default function AccountsPage() {
 				{passkeys.isPending ? (
 					<p className="status">Loading…</p>
 				) : passkeys.data?.length === 0 ? (
-					<p className="status">No passkeys.</p>
+					<p className="status">No Passkeys.</p>
 				) : (
 					passkeys.data?.map((key) => (
 						<div className="row" key={key.id}>
@@ -264,7 +264,7 @@ export default function AccountsPage() {
 												}
 											}}
 										>
-											Confirm removal
+											Confirm Removal
 										</button>
 										<button
 											className="quiet"

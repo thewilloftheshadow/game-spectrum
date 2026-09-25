@@ -100,7 +100,7 @@ export default function HomePage() {
 						className="button"
 						to={session ? "/dashboard" : "/login"}
 					>
-						{session ? "My library" : "Create a list"}
+						{session ? "My Library" : "Create A List"}
 						<span aria-hidden="true">↗</span>
 					</Link>
 				</div>
@@ -109,7 +109,7 @@ export default function HomePage() {
 			<div
 				className={styles.filmstrip}
 				role="group"
-				aria-label="Featured game artwork"
+				aria-label="Featured Game Artwork"
 			>
 				{featured.map((game, index) => (
 					<button

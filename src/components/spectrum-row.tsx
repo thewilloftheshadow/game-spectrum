@@ -109,13 +109,13 @@ export const SpectrumRow = memo(function SpectrumRow({
 									name={`${formId}-rating-help`}
 								>
 									<summary
-										aria-label={`Store link for ${entry.title}`}
+										aria-label={`Store Link For ${entry.title}`}
 									>
-										{store?.label ?? "Add store"}
+										{store?.label ?? "Add Store"}
 									</summary>
 									<div>
 										<label>
-											Store link
+											Store Link
 											<input
 												form={formId}
 												type="url"
@@ -125,7 +125,7 @@ export const SpectrumRow = memo(function SpectrumRow({
 													store?.url ??
 													""
 												}
-												placeholder="Paste the game's store URL"
+												placeholder="Paste The Game's Store URL"
 												disabled={disabled}
 												aria-label={`${entry.title}: store URL`}
 												onChange={(event) =>

@@ -22,7 +22,7 @@ const initialProgress = {
 }
 
 export function meta() {
-	return [{ title: "Import library | Game Spectrum" }]
+	return [{ title: "Import Library | Game Spectrum" }]
 }
 
 export default function ImportPage() {
@@ -113,7 +113,7 @@ export default function ImportPage() {
 	return (
 		<main id="main" className="page narrow">
 			<div className="heading">
-				<h1 className="title">Import library</h1>
+				<h1 className="title">Import Library</h1>
 				<Link to="/dashboard" className="secondary">
 					My Library
 				</Link>
@@ -152,10 +152,10 @@ export default function ImportPage() {
 			{progress.status !== "idle" && (
 				<section
 					className={styles.progress}
-					aria-label="Steam import progress"
+					aria-label="Steam Import Progress"
 				>
 					<progress
-						aria-label="Games checked"
+						aria-label="Games Checked"
 						max={Math.max(progress.total, 1)}
 						value={
 							pending && progress.total === 0
@@ -170,10 +170,10 @@ export default function ImportPage() {
 					>
 						<span>
 							{pending && progress.total === 0
-								? "Loading Steam library…"
+								? "Loading Steam Library…"
 								: `${progress.processed} / ${progress.total} games checked`}
 						</span>
-						<span>{progress.imported} imported</span>
+						<span>{progress.imported} Imported</span>
 					</div>
 					{pending && (
 						<p className="status">
@@ -205,10 +205,10 @@ export default function ImportPage() {
 						{pending
 							? "Importing…"
 							: progress.status === "error"
-								? "Retry import"
+								? "Retry Import"
 								: progress.status === "complete"
-									? "Import again"
-									: "Import library"}
+									? "Import Again"
+									: "Import Library"}
 					</button>
 				) : (
 					<button

@@ -7,14 +7,14 @@ export function SiteNav() {
 	return (
 		<header className={styles.header}>
 			<a className={styles.skip} href="#main">
-				Skip to content
+				Skip To Content
 			</a>
 			<Link
 				className={styles.brand}
 				to="/"
 				aria-label="Game Spectrum home"
 			>
-				game<span>spectrum</span>
+				Game<span>Spectrum</span>
 			</Link>
 			<nav className={styles.nav} aria-label="Main navigation">
 				<NavLink to="/dashboard">My Library</NavLink>
@@ -25,7 +25,7 @@ export function SiteNav() {
 					</NavLink>
 				) : !isPending ? (
 					<NavLink to="/login" className={styles.account}>
-						Sign in
+						Sign In
 					</NavLink>
 				) : (
 					<span

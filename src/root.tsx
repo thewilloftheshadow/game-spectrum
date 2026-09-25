@@ -73,8 +73,8 @@ export function ErrorBoundary() {
 				<main id="main" className="page">
 					<h1 className="title">
 						{notFound
-							? "Page not found"
-							: "Unable to load this page"}
+							? "Page Not Found"
+							: "Unable To Load This Page"}
 					</h1>
 					<Link to="/" className="secondary">
 						Home

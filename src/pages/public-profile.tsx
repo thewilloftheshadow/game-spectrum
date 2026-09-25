@@ -41,7 +41,7 @@ export default function PublicProfilePage({
 	if (profile.error || !profile.data)
 		return (
 			<main id="main" className="page">
-				<h1 className="title">Profile unavailable</h1>
+				<h1 className="title">Profile Unavailable</h1>
 			</main>
 		)
 	const { data } = profile.data
@@ -75,7 +75,7 @@ export default function PublicProfilePage({
 					<CopyProfileLink slug={data.profile.slug} />
 					{owner && (
 						<Link className="quiet" to="/accounts/profile">
-							Edit profile
+							Edit Profile
 						</Link>
 					)}
 				</div>
@@ -84,11 +84,11 @@ export default function PublicProfilePage({
 				<>
 					<div className={styles.tools}>
 						<label>
-							<span className="sr-only">Search rated games</span>
+							<span className="sr-only">Search Rated Games</span>
 							<input
 								className="input"
 								type="search"
-								placeholder="Search rated games"
+								placeholder="Search Rated Games"
 								value={find}
 								onChange={(event) =>
 									setFind(event.target.value)
@@ -97,7 +97,7 @@ export default function PublicProfilePage({
 						</label>
 						{owner && (
 							<Link className="quiet" to="/dashboard">
-								Edit ratings
+								Edit Ratings
 							</Link>
 						)}
 					</div>
@@ -116,7 +116,7 @@ export default function PublicProfilePage({
 					<p>No completed ratings to share yet.</p>
 					{owner && (
 						<Link className="secondary" to="/dashboard">
-							Rate your games
+							Rate Your Games
 						</Link>
 					)}
 				</div>

@@ -15,8 +15,8 @@ export function CopyProfileLink({
 			<button
 				type="button"
 				className="secondary"
-				title="Copy profile link"
-				aria-label="Copy profile link"
+				title="Copy Profile Link"
+				aria-label="Copy Profile Link"
 				onClick={async () => {
 					const url = new URL(
 						`/u/${encodeURIComponent(slug)}`,
@@ -53,7 +53,7 @@ export function CopyProfileLink({
 				) : copied === slug ? (
 					"Copied"
 				) : (
-					"Copy link"
+					"Copy Link"
 				)}
 			</button>
 			<span className="sr-only" role="status">
