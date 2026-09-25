@@ -19,14 +19,6 @@
 	border-bottom: 1px solid var(--line);
 	background: var(--background);
 }
-.home {
-	padding: 8px 4px;
-	font-size: 13px;
-	color: var(--muted);
-}
-.home:hover {
-	color: var(--text);
-}
 .find {
 	flex: 1 1 140px;
 	max-width: 280px;

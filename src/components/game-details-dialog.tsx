@@ -122,11 +122,11 @@ export function GameDetailsDialog({
 									)
 								}
 							/>
-							<span className="status">
-								{storeLabel
-									? `Linked to ${storeLabel}`
-									: "Steam, Epic, GOG, App Store, or Google Play."}
-							</span>
+							{!storeLabel && (
+								<span className="status">
+									Steam, Epic, GOG, App Store, or Google Play.
+								</span>
+							)}
 						</label>
 						<label className="field">
 							Paid Price
@@ -149,10 +149,6 @@ export function GameDetailsDialog({
 									)
 								}
 							/>
-							<span className="status">
-								Shown on your public profile. Clear to use
-								current price.
-							</span>
 						</label>
 						<label className="field">
 							Game Artwork
@@ -201,7 +197,7 @@ export function GameDetailsDialog({
 										? "Artwork uploaded"
 										: reset.isSuccess
 											? "Artwork reset"
-											: "PNG, JPG, WebP, or GIF. Max 6 MB."}
+											: "Recommended 460×215. PNG, JPG, WebP, or GIF. Max 6 MB."}
 							</span>
 							{(upload.error || reset.error) && (
 								<span className="error" role="alert">

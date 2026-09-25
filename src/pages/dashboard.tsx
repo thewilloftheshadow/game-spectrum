@@ -114,9 +114,6 @@ export default function DashboardPage() {
 						className={styles.toolbar}
 						aria-label="Library Controls"
 					>
-						<Link to="/" className={styles.home}>
-							Home
-						</Link>
 						<label className={styles.find}>
 							<span className="sr-only">Search Library</span>
 							<input
