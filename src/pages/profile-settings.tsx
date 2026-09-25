@@ -3,7 +3,8 @@ import { useEffect, useState } from "react"
 import { Link, NavLink } from "react-router"
 import type { z } from "zod"
 import { CopyProfileLink } from "~/components/copy-profile-link"
-import { apiJson } from "~/lib/api-client"
+import { Image } from "~/components/image"
+import { apiClient, apiJson } from "~/lib/api-client"
 import { myProfileQuery } from "~/lib/profile"
 import type { profilePayload } from "~/server/api/profile"
 import type { profiles } from "~/server/db/schema"
@@ -40,7 +41,57 @@ export default function ProfileSettingsPage() {
 			])
 		}
 	})
+	const avatarUpload = useMutation({
+		mutationFn: (file: File) => {
+			const body = new FormData()
+			body.set("avatar", file)
+			return apiClient<{
+				data: { profile: typeof profiles.$inferSelect }
+			}>("profile/avatar", { body, method: "POST" })
+		},
+		onSuccess: async (result) => {
+			queryClient.setQueryData(myProfileQuery.queryKey, (current) =>
+				current
+					? {
+							data: {
+								...current.data,
+								profile: result.data.profile
+							}
+						}
+					: current
+			)
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ["me"] }),
+				queryClient.invalidateQueries({ queryKey: ["public"] })
+			])
+		}
+	})
+	const avatarReset = useMutation({
+		mutationFn: () =>
+			apiClient<{ data: { profile: typeof profiles.$inferSelect } }>(
+				"profile/avatar",
+				{ method: "DELETE" }
+			),
+		onSuccess: async (result) => {
+			queryClient.setQueryData(myProfileQuery.queryKey, (current) =>
+				current
+					? {
+							data: {
+								...current.data,
+								profile: result.data.profile
+							}
+						}
+					: current
+			)
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ["me"] }),
+				queryClient.invalidateQueries({ queryKey: ["public"] })
+			])
+		}
+	})
 	const profile = me.data?.data.profile
+	const avatar = profile?.avatarUrl ?? me.data?.data.user.image
+	const avatarPending = avatarUpload.isPending || avatarReset.isPending
 	const [isPublic, setIsPublic] = useState(false)
 	useEffect(() => {
 		if (profile) setIsPublic(profile.isPublic)
@@ -117,6 +168,51 @@ export default function ProfileSettingsPage() {
 								required
 								maxLength={80}
 							/>
+						</label>
+						<label className="field">
+							Profile Avatar
+							<div className={styles.avatarField}>
+								{avatar && (
+									<Image
+										className={styles.avatar}
+										src={avatar}
+										alt=""
+										width={56}
+										height={56}
+									/>
+								)}
+								<input
+									className="input"
+									type="file"
+									accept="image/png,image/jpeg,image/webp,image/gif"
+									disabled={avatarPending}
+									onChange={(event) => {
+										const file =
+											event.currentTarget.files?.[0]
+										if (file) avatarUpload.mutate(file)
+										event.currentTarget.value = ""
+									}}
+								/>
+								{profile.avatarUrl && (
+									<button
+										className="quiet"
+										type="button"
+										disabled={avatarPending}
+										onClick={() => avatarReset.mutate()}
+									>
+										Use Account Avatar
+									</button>
+								)}
+							</div>
+							<span className="status" role="status">
+								{avatarUpload.isPending
+									? "Uploading Avatar…"
+									: avatarUpload.isSuccess
+										? "Avatar Uploaded"
+										: avatarReset.isSuccess
+											? "Account Avatar Restored"
+											: "PNG, JPG, WebP, or GIF. Max 4 MB."}
+							</span>
 						</label>
 						<div
 							className={styles.sharing}

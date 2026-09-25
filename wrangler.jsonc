@@ -27,5 +27,11 @@
 			"database_id": "383eca4b-9e4a-461f-bc1e-2be50fa5d7b7",
 			"migrations_dir": "drizzle/migrations"
 		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "USER_UPLOADS",
+			"bucket_name": "game-spectrum-user-uploads"
+		}
 	]
 }

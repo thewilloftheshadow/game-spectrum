@@ -26,6 +26,17 @@
 	padding: 0;
 	margin: 0;
 }
+.avatarField {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.avatar {
+	flex: 0 0 auto;
+	border-radius: 50%;
+	object-fit: cover;
+	background: var(--surface);
+}
 .slug {
 	position: relative;
 	display: block;

@@ -9,7 +9,8 @@ const allowedMediaHosts = [
 	"googleusercontent.com",
 	"igdb.com",
 	"jtvnw.net",
-	"steamstatic.com"
+	"steamstatic.com",
+	"user-uploads.gamespectrum.org"
 ]
 
 export const mediaRoutes = new Hono<ApiEnv>()
