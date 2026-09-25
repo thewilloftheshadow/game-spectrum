@@ -1,4 +1,5 @@
 import { Fragment, memo } from "react"
+import { Link } from "~/components/link"
 import { calculateScore, ratingFields, ratingGroups } from "~/lib/scoring"
 import { getStorefront } from "~/lib/storefront"
 import type { SpectrumGame } from "./spectrum-table"
@@ -78,14 +79,13 @@ export const SpectrumRow = memo(function SpectrumRow({
 					<div>
 						<strong>
 							{store ? (
-								<a
+								<Link
 									className={styles.storeTitle}
 									href={store.url}
 									target="_blank"
-									rel="noreferrer"
 								>
 									{entry.title}
-								</a>
+								</Link>
 							) : (
 								entry.title
 							)}

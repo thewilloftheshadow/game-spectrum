@@ -4,6 +4,7 @@ import {
 	useLoaderData,
 	useNavigate
 } from "react-router"
+import { setDiscordSdk } from "~/lib/discord-sdk"
 import { cloudflareContext } from "~/lib/router-context"
 
 const getSecret = (env: Cloudflare.Env, name: string) =>
@@ -28,6 +29,7 @@ export function ActivityBootstrap({ clientId }: { clientId: string | null }) {
 			const { DiscordSDK } = await import("@discord/embedded-app-sdk")
 			const discordSdk = new DiscordSDK(clientId)
 			await discordSdk.ready()
+			setDiscordSdk(discordSdk)
 
 			const { code } = await discordSdk.commands.authorize({
 				client_id: clientId,

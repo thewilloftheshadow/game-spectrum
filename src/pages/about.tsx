@@ -1,3 +1,4 @@
+import { Link } from "~/components/link"
 import { ratingFields } from "~/lib/scoring"
 import styles from "./about.module.css"
 
@@ -8,9 +9,9 @@ export default function AboutPage() {
 			<article className={styles.copy}>
 				The <strong>Game Spectrum</strong> concept was originally
 				created by{" "}
-				<a href="https://twitch.tv/bocabola" target="_blank">
+				<Link href="https://twitch.tv/bocabola" target="_blank">
 					BocaBola
-				</a>
+				</Link>
 				. This is his original note about this:
 				<br />
 				<br />
@@ -34,14 +35,13 @@ export default function AboutPage() {
 				https://discord.gg/tHCMX7Y7y3 | But I would love to expand this
 				to a website or video series on games and more media.
 			</article>
-			<a
+			<Link
 				className={styles.source}
 				href="https://docs.google.com/spreadsheets/d/1MugtKKstOsAb4GIhY6PnukJuGBZXb0C7dQjnZiFgrT0/edit"
 				target="_blank"
-				rel="noreferrer"
 			>
 				Original Template Spreadsheet
-			</a>
+			</Link>
 			<section className={styles.scoring} aria-labelledby="scoring-title">
 				<h2 id="scoring-title">Scoring</h2>
 				{[...new Set(ratingFields.map((field) => field.group))].map(

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
+import { Link } from "~/components/link"
 import { apiQueryOptions } from "~/lib/api-client"
 import { getStorefront } from "~/lib/storefront"
 import type { getStorePrice } from "~/server/api/prices"
@@ -75,10 +76,9 @@ export function SpectrumPrices({
 					`$${(entry.paidPriceCents / 100).toFixed(2)}`
 				) : price ? (
 					editable && store ? (
-						<a
+						<Link
 							href={store.url}
 							target="_blank"
-							rel="noreferrer"
 							aria-label={`${entry.title} on ${store.label}: ${price.current === 0 ? "free" : `$${(price.current / 100).toFixed(2)}`}`}
 						>
 							{price.current < price.regular && (
@@ -95,7 +95,7 @@ export function SpectrumPrices({
 									? "Free"
 									: `$${(price.current / 100).toFixed(2)}`}
 							</span>
-						</a>
+						</Link>
 					) : (
 						`$${(price.current / 100).toFixed(2)}`
 					)
