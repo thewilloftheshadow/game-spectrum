@@ -1,4 +1,3 @@
-import { DiscordSDK } from "@discord/embedded-app-sdk"
 import { useEffect, useState } from "react"
 import {
 	type LoaderFunctionArgs,
@@ -27,6 +26,7 @@ export function ActivityBootstrap({ clientId }: { clientId: string | null }) {
 			if (!clientId)
 				throw new Error("Discord client ID is not configured.")
 
+			const { DiscordSDK } = await import("@discord/embedded-app-sdk")
 			const discordSdk = new DiscordSDK(clientId)
 			await discordSdk.ready()
 			setDiscordSdk(discordSdk)
