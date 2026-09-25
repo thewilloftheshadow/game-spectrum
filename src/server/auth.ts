@@ -19,11 +19,25 @@ const requiredSecret = (env: Cloudflare.Env, name: string) => {
 
 export const authBaseURL = "https://www.gamespectrum.org"
 
+const trustedOrigins = (request?: Request) => {
+	const origins = [authBaseURL, "http://localhost:5173"]
+	const origin = request?.headers.get("origin")
+	if (origin) {
+		try {
+			const { hostname } = new URL(origin)
+			if (hostname.endsWith(".discordsays.com")) origins.push(origin)
+		} catch {
+			// Ignore invalid Origin headers.
+		}
+	}
+	return origins
+}
+
 export function getAuth(env: Cloudflare.Env) {
 	return betterAuth({
 		baseURL: secret(env, "BETTER_AUTH_URL") ?? authBaseURL,
 		secret: requiredSecret(env, "BETTER_AUTH_SECRET"),
-		trustedOrigins: [authBaseURL, "http://localhost:5173"],
+		trustedOrigins,
 		database: drizzleAdapter(getDb(env.DB), {
 			provider: "sqlite",
 			schema

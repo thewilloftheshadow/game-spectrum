@@ -107,21 +107,24 @@ export function ActivityBootstrap({ clientId }: { clientId: string | null }) {
 		}
 	}, [clientId, navigate])
 
+	if (!error)
+		return (
+			<main
+				id="main"
+				className="page"
+				aria-busy="true"
+				aria-label="Loading Game Spectrum"
+			>
+				<div className="skeleton" aria-hidden="true" />
+			</main>
+		)
+
 	return (
 		<main id="main" className="page">
-			{error ? (
-				<>
-					<h1 className="title">Unable To Open Game Spectrum</h1>
-					<p className="error" role="alert">
-						{error}
-					</p>
-				</>
-			) : (
-				<>
-					<h1 className="title">Opening Game Spectrum</h1>
-					<div className="skeleton" aria-hidden="true" />
-				</>
-			)}
+			<h1 className="title">Unable To Open Game Spectrum</h1>
+			<p className="error" role="alert">
+				{error}
+			</p>
 		</main>
 	)
 }

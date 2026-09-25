@@ -12,14 +12,20 @@ export default function LoginPage() {
 	const { data: session } = authClient.useSession()
 	const [params] = useSearchParams()
 	const requested = params.get("next")
+	const requestedPath = requested?.split(/[?#]/)[0]
+	const activitySignIn =
+		params.get("activity") === "1" || requested?.includes("activity=1")
 	const next =
-		requested === "/accounts" ||
-		requested === "/accounts/profile" ||
-		requested === "/import"
+		requested?.startsWith("/") &&
+		!requested.startsWith("//") &&
+		(requestedPath === "/accounts" ||
+			requestedPath === "/accounts/profile" ||
+			requestedPath === "/import")
 			? requested
 			: "/dashboard"
 	const [pending, setPending] = useState<string | null>(null)
 	const [error, setError] = useState("")
+	if (activitySignIn) return <Navigate to="/activity" replace />
 	if (session) return <Navigate to={next} replace />
 	return (
 		<main id="main" className={styles.page}>

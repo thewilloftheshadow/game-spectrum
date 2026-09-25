@@ -5,17 +5,26 @@ import { PlatformIcon } from "~/components/platform-icon"
 import type { getConnectedAccounts } from "~/server/api/accounts"
 import { authClient } from "~/lib/auth-client"
 import { apiQueryOptions } from "~/lib/api-client"
+import { getDiscordSdk } from "~/lib/discord-sdk"
 import styles from "./accounts.module.css"
 
 export function meta() {
 	return [{ title: "Accounts | Game Spectrum" }]
 }
 
+const providers = ["steam", "discord", "twitch"] as const
+
 export default function AccountsPage() {
 	const queryClient = useQueryClient()
 	const [params] = useSearchParams()
 	const [pending, setPending] = useState<string | null>(null)
 	const [error, setError] = useState("")
+	const [mergePrompt, setMergePrompt] = useState(
+		[
+			"ACCOUNT_ALREADY_LINKED_TO_DIFFERENT_USER",
+			"STEAM_ACCOUNT_ALREADY_LINKED"
+		].includes(params.get("error") ?? "")
+	)
 	const [confirmRemove, setConfirmRemove] = useState<string | null>(null)
 	const accounts = useQuery({
 		...apiQueryOptions<{
@@ -34,6 +43,109 @@ export default function AccountsPage() {
 			return result.data
 		}
 	})
+
+	const connectProvider = async (provider: (typeof providers)[number]) => {
+		const name =
+			provider === "steam"
+				? "Steam"
+				: provider === "discord"
+					? "Discord"
+					: "Twitch"
+		setError("")
+		setPending(provider)
+		try {
+			const discordSdk = getDiscordSdk()
+			if (discordSdk && provider === "discord") {
+				const { code } = await discordSdk.commands.authorize({
+					client_id: discordSdk.clientId,
+					prompt: "none",
+					response_type: "code",
+					scope: ["identify", "email", "guilds"],
+					state: ""
+				})
+				const response = await fetch(
+					"/api/auth/activity-link-discord",
+					{
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						credentials: "same-origin",
+						body: JSON.stringify({ code })
+					}
+				)
+				if (response.status === 409) {
+					setMergePrompt(true)
+					return
+				}
+				if (!response.ok) throw new Error()
+				await queryClient.invalidateQueries({ queryKey: ["accounts"] })
+				return
+			}
+
+			if (discordSdk) {
+				const response = await fetch(
+					provider === "steam"
+						? "/api/auth/steam/link"
+						: "/api/auth/link-social",
+					{
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						credentials: "same-origin",
+						body: JSON.stringify(
+							provider === "steam"
+								? {
+										callbackURL: "/accounts",
+										errorCallbackURL: "/accounts"
+									}
+								: {
+										callbackURL: "/accounts",
+										disableRedirect: true,
+										errorCallbackURL: "/accounts",
+										provider
+									}
+						)
+					}
+				)
+				const result = (await response.json()) as { url?: string }
+				if (!response.ok || !result.url) throw new Error()
+				await discordSdk.commands.openExternalLink({ url: result.url })
+				setError("Finish in browser.")
+				return
+			}
+
+			const result =
+				provider === "steam"
+					? await authClient.steam.link({
+							callbackURL: "/accounts",
+							errorCallbackURL: "/accounts"
+						})
+					: await authClient.linkSocial({
+							provider,
+							callbackURL: "/accounts",
+							errorCallbackURL: "/accounts"
+						})
+			if (result.error) {
+				if (
+					[
+						"ACCOUNT_ALREADY_LINKED_TO_DIFFERENT_USER",
+						"STEAM_ACCOUNT_ALREADY_LINKED"
+					].includes(result.error.code ?? "")
+				) {
+					setMergePrompt(true)
+					return
+				}
+				throw new Error(result.error.message)
+			}
+		} catch (failure) {
+			setError(
+				failure instanceof Error && failure.message
+					? failure.message
+					: `Unable to connect ${name}.`
+			)
+		} finally {
+			setPending(null)
+		}
+	}
+
 	return (
 		<main id="main" className="page narrow">
 			<div className="heading">
@@ -73,17 +185,49 @@ export default function AccountsPage() {
 				</NavLink>
 				<NavLink to="/accounts/profile">Profile</NavLink>
 			</nav>
-			{(error || params.has("error")) && (
+			{(error || (params.has("error") && !mergePrompt)) && (
 				<p className="error" role="alert">
 					{error || "Unable to connect account. Please try again."}
 				</p>
+			)}
+			{mergePrompt && (
+				<section className="section">
+					<h2>Merge Accounts?</h2>
+					<p>
+						This platform is linked to another Game Spectrum
+						account.
+					</p>
+					<div className="actions">
+						<button
+							className="secondary"
+							onClick={async () => {
+								const url =
+									"https://www.gamespectrum.org/login?next=/accounts"
+								const discordSdk = getDiscordSdk()
+								if (discordSdk)
+									await discordSdk.commands.openExternalLink({
+										url
+									})
+								else window.location.assign(url)
+							}}
+						>
+							Merge
+						</button>
+						<button
+							className="quiet"
+							onClick={() => setMergePrompt(false)}
+						>
+							Cancel
+						</button>
+					</div>
+				</section>
 			)}
 			{accounts.error && (
 				<p className="error" role="alert">
 					{accounts.error.message}
 				</p>
 			)}
-			{(["steam", "discord", "twitch"] as const).map((provider) => {
+			{providers.map((provider) => {
 				const linked = accounts.data?.data.find(
 					(account) => account.providerId === provider
 				)
@@ -131,40 +275,7 @@ export default function AccountsPage() {
 									accounts.isPending ||
 									!!accounts.error
 								}
-								onClick={async () => {
-									setError("")
-									setPending(provider)
-									try {
-										const result =
-											provider === "steam"
-												? await authClient.steam.link({
-														callbackURL:
-															"/accounts",
-														errorCallbackURL:
-															"/accounts"
-													})
-												: await authClient.linkSocial({
-														provider,
-														callbackURL:
-															"/accounts",
-														errorCallbackURL:
-															"/accounts"
-													})
-										if (result.error)
-											throw new Error(
-												result.error.message ||
-													`Unable to connect ${name}.`
-											)
-									} catch (failure) {
-										setError(
-											failure instanceof Error
-												? failure.message
-												: `Unable to connect ${name}.`
-										)
-									} finally {
-										setPending(null)
-									}
-								}}
+								onClick={() => connectProvider(provider)}
 							>
 								{pending === provider
 									? "Connecting…"

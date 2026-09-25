@@ -2,7 +2,12 @@ import { getCookies } from "better-auth/cookies"
 import { serializeSignedCookie } from "better-call"
 import { Hono } from "hono"
 import { getAuth } from "../auth"
-import { type ApiEnv, requiredSecret } from "./context"
+import {
+	type ApiEnv,
+	jsonError,
+	requiredSecret,
+	requireSession
+} from "./context"
 
 const discordTokenUrl = "https://discord.com/api/v10/oauth2/token"
 const discordMeUrl = "https://discord.com/api/v10/users/@me"
@@ -162,6 +167,7 @@ const appendSessionCookie = async (
 			{
 				...cookie.attributes,
 				maxAge: context.sessionConfig.expiresIn,
+				partitioned: true,
 				sameSite: "none",
 				secure: true
 			}
@@ -170,6 +176,67 @@ const appendSessionCookie = async (
 }
 
 export const activityAuthRoutes = new Hono<ApiEnv>()
+
+activityAuthRoutes.post("/activity-link-discord", async (c) => {
+	const { code } = (await c.req.json().catch(() => ({}))) as {
+		code?: string
+	}
+	if (!code) return c.json(jsonError("missing code", 400), 400)
+
+	try {
+		const session = await requireSession(c.env, c.req.raw.headers)
+		const token = await exchangeDiscordActivityCode(c.env, code)
+		const discordUser = await getDiscordActivityUser(token)
+		const auth = getAuth(c.env)
+		const context = await auth.$context
+		const account = await context.internalAdapter.findAccountByKey({
+			accountId: discordUser.id,
+			providerId: "discord"
+		})
+
+		if (account && account.userId !== session.user.id) {
+			return c.json(
+				{
+					error: {
+						code: "ACCOUNT_ALREADY_LINKED_TO_DIFFERENT_USER",
+						message:
+							"This Discord account belongs to another Game Spectrum account."
+					},
+					merge: {
+						provider: "Discord"
+					}
+				},
+				409
+			)
+		}
+
+		if (account) {
+			await context.internalAdapter.updateAccount(account.id, {
+				accessToken: token.accessToken,
+				accessTokenExpiresAt: token.expiresAt,
+				refreshToken: token.refreshToken,
+				scope: token.scope
+			})
+		} else {
+			await context.internalAdapter.linkAccount({
+				accountId: discordUser.id,
+				accessToken: token.accessToken,
+				accessTokenExpiresAt: token.expiresAt,
+				providerId: "discord",
+				refreshToken: token.refreshToken,
+				scope: token.scope,
+				userId: session.user.id
+			})
+		}
+
+		return c.json({ data: { ok: true } })
+	} catch (failure) {
+		if (failure instanceof Error && failure.message === "Sign in required")
+			return c.json(jsonError("Sign in required", 401), 401)
+		console.error("Discord Activity account linking failed", failure)
+		return c.json(jsonError("Unable to connect Discord.", 500), 500)
+	}
+})
 
 activityAuthRoutes.post("/activity-token", async (c) => {
 	const { code } = (await c.req.json().catch(() => ({}))) as {

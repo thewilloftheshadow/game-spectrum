@@ -29,12 +29,16 @@ export default function AccountLayout() {
 				</button>
 			</main>
 		)
-	if (!session)
+	if (!session) {
+		const params = new URLSearchParams(location.search)
+		if (params.get("activity") === "1")
+			return <Navigate to="/activity" replace />
 		return (
 			<Navigate
-				to={`/login?next=${encodeURIComponent(location.pathname)}`}
+				to={`/login?next=${encodeURIComponent(`${location.pathname}${location.search}`)}`}
 				replace
 			/>
 		)
+	}
 	return <Outlet />
 }
