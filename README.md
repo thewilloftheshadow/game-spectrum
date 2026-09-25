@@ -58,9 +58,7 @@ Set these as Cloudflare Worker secrets or local `.dev.vars` values:
 - `BETTER_AUTH_SECRET` - at least 32 random characters
 - `DISCORD_CLIENT_ID` - Discord OAuth app client ID
 - `DISCORD_CLIENT_SECRET` - Discord OAuth app client secret
-- `DISCORD_PUBLIC_KEY` - Discord app public key for interactions
 - `DISCORD_BOT_TOKEN` - Discord bot token for command deployment
-- `CARBON_DEPLOY_SECRET` - deploy-route secret for Carbon commands
 - `STEAM_API_KEY` - Steam Web API key
 - `TWITCH_CLIENT_ID` - Twitch OAuth app client ID
 - `TWITCH_CLIENT_SECRET` - Twitch OAuth app client secret
@@ -78,7 +76,7 @@ https://www.gamespectrum.org/api/auth/callback/twitch
 
 Discord Activity/App Channel launches are supported at `/activity`, and the homepage also bootstraps the Activity when Discord supplies `frame_id` or `instance_id` query params. The Activity uses the same Discord client ID/secret and signs users into Game Spectrum before opening `/dashboard`.
 
-Carbon interactions endpoint: `https://www.gamespectrum.org/api/carbon`. Deploy commands through `/api/carbon/deploy?secret=...`.
+Carbon interactions endpoint: `https://www.gamespectrum.org/api/carbon/interactions`. Deploy commands through `/api/carbon/deploy?secret=spectrum`.
 
 ## Database
 
