@@ -32,11 +32,9 @@
 	padding: 0;
 	margin: 0;
 }
-.slug {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-.slug > span {
+.slug::before {
 	color: var(--muted);
+}
+.slug::before {
+	content: "/u/";
 }

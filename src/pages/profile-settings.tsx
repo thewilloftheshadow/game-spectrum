@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useEffect, useState } from "react"
 import { Link, NavLink } from "react-router"
 import type { z } from "zod"
 import { CopyProfileLink } from "~/components/copy-profile-link"
@@ -40,7 +41,11 @@ export default function ProfileSettingsPage() {
 		}
 	})
 	const profile = me.data?.data.profile
-	const visibilityChange = save.variables?.isPublic !== undefined
+	const [isPublic, setIsPublic] = useState(false)
+	useEffect(() => {
+		if (profile) setIsPublic(profile.isPublic)
+	}, [profile])
+
 	return (
 		<main id="main" className="page narrow">
 			<div className="heading">
@@ -73,164 +78,150 @@ export default function ProfileSettingsPage() {
 				</p>
 			)}
 			{profile && (
-				<>
-					<section
-						className={styles.sharing}
-						aria-label="Profile sharing"
-					>
-						<div className={styles.visibility}>
-							<label className="checkbox">
-								<input
-									type="checkbox"
-									checked={
-										save.isPending && visibilityChange
-											? save.variables?.isPublic
-											: profile.isPublic
+				<form
+					className="form"
+					key={profile.slug}
+					onChange={() => {
+						if (!save.isPending) save.reset()
+					}}
+					onSubmit={(event) => {
+						event.preventDefault()
+						const form = new FormData(event.currentTarget)
+						save.mutate({
+							displayName: String(
+								form.get("displayName") || ""
+							).trim(),
+							isPublic,
+							...(isPublic
+								? {
+										slug: String(form.get("slug") || "")
+											.trim()
+											.toLowerCase(),
+										bio: String(form.get("bio") || ""),
+										favoriteGenres: String(
+											form.get("favoriteGenres") || ""
+										)
+											.split(",")
+											.map((genre) => genre.trim())
+											.filter(Boolean)
 									}
-									disabled={save.isPending}
-									onChange={(event) =>
-										save.mutate({
-											isPublic: event.target.checked
-										})
-									}
-								/>
-								Show Profile Publicly
-							</label>
-							<span className="status" role="status">
-								{save.isPending && visibilityChange
-									? "Saving Visibility…"
-									: profile.isPublic
-										? "Public"
-										: "Private"}
-							</span>
-						</div>
-						<p className={styles.hint}>
-							{profile.isPublic
-								? "Completed ratings are visible at your profile link."
-								: "Your profile link returns “not found” until you make it public."}{" "}
-							Hidden games stay private. Shared games show your
-							saved Paid amount, or the current store price when
-							unset.
-						</p>
-						<p className={styles.counts}>
-							{me.data?.data.library.ready ?? 0}{" "}
-							{profile.isPublic ? "shared" : "ready to share"}
-							<span> / </span>
-							{me.data?.data.library.unfinished ?? 0} unfinished
-							<span> / </span>
-							{me.data?.data.library.hidden ?? 0} hidden
-						</p>
-						{save.error && visibilityChange && (
-							<p className="error" role="alert">
-								{save.error.message}
-							</p>
-						)}
-					</section>
-					<form
-						className="form"
-						key={profile.slug}
-						onChange={() => {
-							if (!save.isPending) save.reset()
-						}}
-						onSubmit={(event) => {
-							event.preventDefault()
-							const form = new FormData(event.currentTarget)
-							save.mutate({
-								displayName: String(
-									form.get("displayName") || ""
-								).trim(),
-								slug: String(form.get("slug") || "")
-									.trim()
-									.toLowerCase(),
-								bio: String(form.get("bio") || ""),
-								favoriteGenres: String(
-									form.get("favoriteGenres") || ""
-								)
-									.split(",")
-									.map((genre) => genre.trim())
-									.filter(Boolean)
-							})
-						}}
+								: {})
+						})
+					}}
+				>
+					<fieldset
+						className={styles.fields}
+						disabled={save.isPending}
 					>
-						<fieldset
-							className={styles.fields}
-							disabled={save.isPending}
+						<label className="field">
+							Display Name
+							<input
+								className="input"
+								name="displayName"
+								autoComplete="nickname"
+								defaultValue={profile.displayName}
+								required
+								maxLength={80}
+							/>
+						</label>
+						<div
+							className={styles.sharing}
+							aria-label="Profile Sharing"
 						>
-							<label className="field">
-								Display Name
-								<input
-									className="input"
-									name="displayName"
-									autoComplete="nickname"
-									defaultValue={profile.displayName}
-									required
-									maxLength={80}
-								/>
-							</label>
-							<label className="field">
-								Profile URL
-								<div className={styles.slug}>
-									<span>/u/</span>
+							<div className={styles.visibility}>
+								<label className="checkbox">
 									<input
-										className="input"
-										name="slug"
-										defaultValue={profile.slug}
-										pattern="[a-z0-9\-]{2,40}"
-										required
-										minLength={2}
-										maxLength={40}
-										autoCapitalize="none"
-										spellCheck={false}
-										aria-label="Profile Slug"
+										type="checkbox"
+										checked={isPublic}
+										onChange={(event) =>
+											setIsPublic(event.target.checked)
+										}
 									/>
-								</div>
-							</label>
-							<label className="field">
-								Bio
-								<textarea
-									className="textarea"
-									name="bio"
-									defaultValue={profile.bio}
-									maxLength={800}
-								/>
-							</label>
-							<label className="field">
-								Favorite Genres
-								<input
-									className="input"
-									name="favoriteGenres"
-									defaultValue={(
-										JSON.parse(
-											profile.favoriteGenres
-										) as string[]
-									).join(", ")}
-									placeholder="Adventure, Puzzle, RPG"
-								/>
-							</label>
-						</fieldset>
-						{save.error && !visibilityChange && (
-							<p className="error" role="alert">
-								{save.error.message}
+									Show Profile Publicly
+								</label>
+								<span className="status" role="status">
+									{isPublic ? "Public" : "Private"}
+								</span>
+							</div>
+							<p className={styles.hint}>
+								{isPublic
+									? "Completed ratings are visible at your profile link."
+									: "Your profile link returns “not found” until you make it public."}{" "}
+								Hidden games stay private. Shared games show
+								your saved Paid amount, or the current store
+								price when unset.
 							</p>
-						)}
-						<div className="actions">
-							<button
-								className="button"
-								disabled={save.isPending}
-								type="submit"
-							>
-								{save.isPending && !visibilityChange
-									? "Saving…"
-									: "Save Profile"}
-							</button>
-							<span className="status" role="status">
-								{save.isSuccess && !visibilityChange
-									? "Profile Saved"
-									: ""}
-							</span>
+							<p className={styles.counts}>
+								{me.data?.data.library.ready ?? 0}{" "}
+								{isPublic ? "shared" : "ready to share"}
+								<span> / </span>
+								{me.data?.data.library.unfinished ?? 0}{" "}
+								unfinished
+								<span> / </span>
+								{me.data?.data.library.hidden ?? 0} hidden
+							</p>
 						</div>
-					</form>
-				</>
+					</fieldset>
+					<fieldset
+						className={styles.fields}
+						disabled={save.isPending || !isPublic}
+					>
+						<label className="field">
+							Profile URL
+							<input
+								className="input slug"
+								name="slug"
+								defaultValue={profile.slug}
+								pattern="[a-z0-9\-]{2,40}"
+								required
+								minLength={2}
+								maxLength={40}
+								autoCapitalize="none"
+								spellCheck={false}
+								aria-label="Profile Slug"
+							/>
+						</label>
+						<label className="field">
+							Bio
+							<textarea
+								className="textarea"
+								name="bio"
+								defaultValue={profile.bio}
+								maxLength={800}
+							/>
+						</label>
+						<label className="field">
+							Favorite Genres
+							<input
+								className="input"
+								name="favoriteGenres"
+								defaultValue={(
+									JSON.parse(
+										profile.favoriteGenres
+									) as string[]
+								).join(", ")}
+								placeholder="Adventure, Puzzle, RPG"
+							/>
+						</label>
+					</fieldset>
+					{save.error && (
+						<p className="error" role="alert">
+							{save.error.message}
+						</p>
+					)}
+					<div className="actions">
+						<button
+							className="button"
+							disabled={save.isPending}
+							type="submit"
+						>
+							{save.isPending ? "Saving…" : "Save Profile"}
+						</button>
+						<span className="status" role="status">
+							{save.isSuccess ? "Profile Saved" : ""}
+						</span>
+					</div>
+				</form>
 			)}
 		</main>
 	)
