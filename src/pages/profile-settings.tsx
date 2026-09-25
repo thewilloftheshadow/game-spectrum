@@ -1,3 +1,4 @@
+import { usePostHog } from "@posthog/react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 import { Link, NavLink } from "react-router"
@@ -5,6 +6,7 @@ import type { z } from "zod"
 import { CopyProfileLink } from "~/components/copy-profile-link"
 import { Image } from "~/components/image"
 import { apiClient, apiJson } from "~/lib/api-client"
+import { posthogLogger } from "~/lib/posthog-logger"
 import { myProfileQuery } from "~/lib/profile"
 import type { profilePayload } from "~/server/api/profile"
 import type { profiles } from "~/server/db/schema"
@@ -15,6 +17,7 @@ export function meta() {
 }
 
 export default function ProfileSettingsPage() {
+	const posthog = usePostHog()
 	const queryClient = useQueryClient()
 	const me = useQuery({ ...myProfileQuery, refetchOnWindowFocus: false })
 	const save = useMutation({
@@ -25,6 +28,16 @@ export default function ProfileSettingsPage() {
 				{ method: "PATCH" }
 			),
 		onSuccess: async (result) => {
+			if (
+				import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+				import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+			)
+				posthog.capture("profile_saved", {
+					is_public: result.data.profile.isPublic
+				})
+			posthogLogger.info("profile settings saved", {
+				is_public: result.data.profile.isPublic
+			})
 			queryClient.setQueryData(myProfileQuery.queryKey, (current) =>
 				current
 					? {
@@ -50,6 +63,11 @@ export default function ProfileSettingsPage() {
 			}>("profile/avatar", { body, method: "POST" })
 		},
 		onSuccess: async (result) => {
+			if (
+				import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+				import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+			)
+				posthog.capture("profile_avatar_uploaded")
 			queryClient.setQueryData(myProfileQuery.queryKey, (current) =>
 				current
 					? {

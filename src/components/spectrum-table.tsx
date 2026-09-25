@@ -1,3 +1,4 @@
+import { usePostHog } from "@posthog/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Fragment, useCallback, useId, useState, type ReactNode } from "react"
 import { apiJson } from "~/lib/api-client"
@@ -41,6 +42,7 @@ export function SpectrumTable({
 	className?: string
 }) {
 	const formId = useId()
+	const posthog = usePostHog()
 	const queryClient = useQueryClient()
 	const [drafts, setDrafts] = useState<
 		Record<
@@ -174,6 +176,14 @@ export function SpectrumTable({
 			return { saved, failed }
 		},
 		onSuccess: async ({ saved }) => {
+			if (
+				saved.size &&
+				import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+				import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+			)
+				posthog.capture("game_ratings_saved", {
+					games_saved: saved.size
+				})
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: ["entries"] }),
 				queryClient.invalidateQueries({ queryKey: ["public"] }),

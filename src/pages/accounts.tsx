@@ -1,3 +1,4 @@
+import { usePostHog } from "@posthog/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { Link, NavLink, useSearchParams } from "react-router"
@@ -15,6 +16,7 @@ export function meta() {
 const providers = ["steam", "discord", "twitch"] as const
 
 export default function AccountsPage() {
+	const posthog = usePostHog()
 	const queryClient = useQueryClient()
 	const [params] = useSearchParams()
 	const [pending, setPending] = useState<string | null>(null)
@@ -163,6 +165,12 @@ export default function AccountsPage() {
 									result.error.message ||
 										"Unable to sign out."
 								)
+							if (
+								import.meta.env
+									.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+								import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+							)
+								posthog.reset()
 							queryClient.clear()
 							window.location.assign("/")
 						} catch (failure) {

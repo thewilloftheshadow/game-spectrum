@@ -1,3 +1,4 @@
+import { usePostHog } from "@posthog/react"
 import { useState } from "react"
 import { getDiscordSdk } from "~/lib/discord-sdk"
 import styles from "./copy-profile-link.module.css"
@@ -9,6 +10,7 @@ export function CopyProfileLink({
 	slug: string
 	compact?: boolean
 }) {
+	const posthog = usePostHog()
 	const [copied, setCopied] = useState("")
 	const [shared, setShared] = useState("")
 	const [fallback, setFallback] = useState("")
@@ -33,6 +35,16 @@ export function CopyProfileLink({
 								custom_id: `profile:${slug}`,
 								message: "Check out my Game Spectrum profile."
 							})
+							if (
+								import.meta.env
+									.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+								import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+							) {
+								if (result.didCopyLink)
+									posthog.capture("profile_link_copied")
+								if (result.didSendMessage)
+									posthog.capture("profile_link_shared")
+							}
 							setCopied(result.didCopyLink ? slug : "")
 							setShared(result.didSendMessage ? slug : "")
 							setFallback("")
@@ -43,6 +55,11 @@ export function CopyProfileLink({
 					}
 					try {
 						await navigator.clipboard.writeText(url)
+						if (
+							import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+							import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+						)
+							posthog.capture("profile_link_copied")
 						setCopied(slug)
 						setFallback("")
 					} catch {

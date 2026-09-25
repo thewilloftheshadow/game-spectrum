@@ -1,3 +1,4 @@
+import { usePostHog } from "@posthog/react"
 import {
 	skipToken,
 	useMutation,
@@ -10,6 +11,7 @@ import { Link, useSearchParams } from "react-router"
 import { PlatformIcon } from "~/components/platform-icon"
 import { apiJson, apiQueryOptions } from "~/lib/api-client"
 import { authClient } from "~/lib/auth-client"
+import { posthogLogger } from "~/lib/posthog-logger"
 import type { getConnectedAccounts } from "~/server/api/accounts"
 import styles from "./import.module.css"
 
@@ -26,6 +28,7 @@ export function meta() {
 }
 
 export default function ImportPage() {
+	const posthog = usePostHog()
 	const queryClient = useQueryClient()
 	const [params] = useSearchParams()
 	const [connecting, setConnecting] = useState(false)
@@ -78,13 +81,32 @@ export default function ImportPage() {
 					error: ""
 				})
 				await queryClient.invalidateQueries({ queryKey: ["entries"] })
-				if (data.nextOffset === null) break
+				if (data.nextOffset === null)
+					return {
+						imported,
+						processed: data.processed,
+						total: data.total
+					}
 				if (data.nextOffset <= offset)
 					throw new Error("Import interrupted. Please try again.")
 				offset = data.nextOffset
 			}
 		},
-		onSuccess: () => {
+		onSuccess: ({ imported, processed, total }) => {
+			if (
+				import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+				import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+			)
+				posthog.capture("steam_library_imported", {
+					games_imported: imported,
+					games_processed: processed,
+					library_size: total
+				})
+			posthogLogger.info("steam library import completed", {
+				games_imported: imported,
+				games_processed: processed,
+				library_size: total
+			})
 			queryClient.setQueryData<typeof initialProgress>(
 				["steam-import-progress"],
 				(current) => ({

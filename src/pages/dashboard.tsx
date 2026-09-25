@@ -1,9 +1,11 @@
+import { usePostHog } from "@posthog/react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
 import { CopyProfileLink } from "~/components/copy-profile-link"
 import { Image } from "~/components/image"
 import { SpectrumTable, type SpectrumGame } from "~/components/spectrum-table"
+import { posthogLogger } from "~/lib/posthog-logger"
 import { myProfileQuery } from "~/lib/profile"
 import { getStorefront } from "~/lib/storefront"
 import type { syncSteamPlaytime } from "~/server/steam"
@@ -17,6 +19,7 @@ export function meta() {
 }
 
 export default function DashboardPage() {
+	const posthog = usePostHog()
 	const queryClient = useQueryClient()
 	const toolbarRef = useRef<HTMLElement>(null)
 	const [query, setQuery] = useState("")
@@ -57,12 +60,20 @@ export default function DashboardPage() {
 				"steam/playtime/sync",
 				{}
 			),
-		onSuccess: () =>
-			Promise.all([
+		onSuccess: (result) => {
+			if (
+				import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+				import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+			)
+				posthog.capture("steam_playtime_synced", {
+					games_updated: result.data.updated
+				})
+			return Promise.all([
 				queryClient.invalidateQueries({ queryKey: ["entries"] }),
 				queryClient.invalidateQueries({ queryKey: ["me"] }),
 				queryClient.invalidateQueries({ queryKey: ["public"] })
 			])
+		}
 	})
 	const search = useQuery({
 		...apiQueryOptions<{ data: z.infer<typeof gamePayload>[] }>(
@@ -76,7 +87,13 @@ export default function DashboardPage() {
 	const add = useMutation({
 		mutationFn: (game: z.infer<typeof gamePayload>) =>
 			apiJson("entries", game),
-		onSuccess: async () => {
+		onSuccess: async (_, game) => {
+			if (
+				import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+				import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+			)
+				posthog.capture("game_added", { source: game.source })
+			posthogLogger.info("game added to library", { source: game.source })
 			setQuery("")
 			setFilter("All")
 			setFind("")
