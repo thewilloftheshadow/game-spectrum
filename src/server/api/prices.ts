@@ -200,7 +200,7 @@ export const getStorePrice = async (url: string) => {
 							elements: z.array(
 								z.object({
 									productSlug: z.string().nullish(),
-									offerType: z.string().optional(),
+									offerType: z.string().nullish(),
 									offerMappings: z
 										.array(
 											z.object({ pageSlug: z.string() })
