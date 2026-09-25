@@ -24,7 +24,14 @@ export function meta() {
 
 export default function Root() {
 	const [queryClient] = useState(() => new QueryClient())
-	const { pathname } = useLocation()
+	const { pathname, search } = useLocation()
+	const params = new URLSearchParams(search)
+	const activityLaunch =
+		pathname === "/" &&
+		(params.has("frame_id") || params.has("instance_id"))
+	const navHidden =
+		activityLaunch ||
+		["/activity", "/dashboard"].includes(pathname.replace(/\/+$/, ""))
 	return (
 		<html lang="en">
 			<head>
@@ -38,9 +45,7 @@ export default function Root() {
 			</head>
 			<body>
 				<QueryClientProvider client={queryClient}>
-					{pathname.replace(/\/+$/, "") !== "/dashboard" && (
-						<SiteNav />
-					)}
+					{!navHidden && <SiteNav />}
 					<Outlet />
 				</QueryClientProvider>
 				<ScrollRestoration />

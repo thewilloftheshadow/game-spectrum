@@ -1,4 +1,5 @@
-import { createRequestHandler } from "react-router"
+import { createRequestHandler, RouterContextProvider } from "react-router"
+import { cloudflareContext } from "~/lib/router-context"
 import { api } from "~/server/api"
 import { syncDueSteamPlaytime } from "~/server/steam"
 
@@ -38,7 +39,9 @@ export default {
 			}
 		}
 
-		const response = await requestHandler(request)
+		const context = new RouterContextProvider()
+		context.set(cloudflareContext, { env, ctx })
+		const response = await requestHandler(request, context)
 		if (publicMatch) response.headers.set("Cache-Control", "no-store")
 		return response
 	}

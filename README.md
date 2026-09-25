@@ -73,6 +73,8 @@ https://www.gamespectrum.org/api/auth/callback/discord
 https://www.gamespectrum.org/api/auth/callback/twitch
 ```
 
+Discord Activity/App Channel launches are supported at `/activity`, and the homepage also bootstraps the Activity when Discord supplies `frame_id` or `instance_id` query params. The Activity uses the same Discord client ID/secret and signs users into Game Spectrum before opening `/dashboard`.
+
 ## Database
 
 D1 database: `game-spectrum`

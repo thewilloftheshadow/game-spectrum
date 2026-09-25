@@ -7,6 +7,7 @@ import {
 
 export default [
 	index("pages/home.tsx"),
+	route("activity", "pages/activity.tsx"),
 	route("login", "pages/login.tsx"),
 	route("about", "pages/about.tsx"),
 	layout("pages/account-layout.tsx", [
