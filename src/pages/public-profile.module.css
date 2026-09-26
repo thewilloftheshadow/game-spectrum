@@ -1,8 +1,12 @@
 .page {
-	padding-bottom: 40px;
+	display: flex;
+	flex-direction: column;
+	height: 100svh;
+	overflow: hidden;
 }
 .profile {
 	display: flex;
+	flex: 0 0 auto;
 	align-items: flex-start;
 	flex-wrap: wrap;
 	gap: 18px;
@@ -48,6 +52,7 @@
 }
 .tools {
 	display: flex;
+	flex: 0 0 auto;
 	align-items: center;
 	gap: 12px;
 	padding: 0 4vw 18px;
@@ -59,6 +64,15 @@
 	min-height: 36px;
 	padding: 9px 12px;
 	font-size: 13px;
+}
+.page .sheet {
+	flex: 1 1 auto;
+	width: 100%;
+	min-width: 0;
+	min-height: 0;
+	max-width: 100%;
+	overflow: auto;
+	overscroll-behavior: contain;
 }
 .empty {
 	display: grid;

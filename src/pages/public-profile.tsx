@@ -103,6 +103,7 @@ export default function PublicProfilePage({
 							entries={data.entries}
 							visibleEntries={filtered}
 							ranks={ranks}
+							className={styles.sheet}
 						/>
 					) : (
 						<p className={styles.empty}>No matching games.</p>
