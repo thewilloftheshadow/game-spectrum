@@ -3,7 +3,7 @@ import styles from "./platform-icon.module.css"
 export function PlatformIcon({
 	provider
 }: {
-	provider: "steam" | "discord" | "twitch" | "passkey"
+	provider: "steam" | "discord" | "twitch" | "passkey" | "epic" | "gog"
 }) {
 	if (provider === "passkey")
 		return (

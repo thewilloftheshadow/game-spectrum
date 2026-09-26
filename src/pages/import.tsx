@@ -23,6 +23,23 @@ const initialProgress = {
 	error: ""
 }
 
+const storeSources = [
+	{
+		codeLabel: "Epic Games Code",
+		loginUrl:
+			"https://www.epicgames.com/id/login?redirectUrl=https%3A%2F%2Fwww.epicgames.com%2Fid%2Fapi%2Fredirect%3FclientId%3D34a02cf8f4414e29b15921876da36f9a%26responseType%3Dcode",
+		name: "Epic Games",
+		provider: "epic"
+	},
+	{
+		codeLabel: "GOG Code",
+		loginUrl:
+			"https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%3A%2F%2Fembed.gog.com%2Fon_login_success%3Forigin%3Dclient&response_type=code&layout=client2",
+		name: "GOG",
+		provider: "gog"
+	}
+] as const
+
 export function meta() {
 	return [{ title: "Import Library | Game Spectrum" }]
 }
@@ -33,6 +50,15 @@ export default function ImportPage() {
 	const [params] = useSearchParams()
 	const [connecting, setConnecting] = useState(false)
 	const [connectionError, setConnectionError] = useState("")
+	const [storeCodes, setStoreCodes] = useState({ epic: "", gog: "" })
+	const [storeResults, setStoreResults] = useState<
+		Partial<
+			Record<
+				(typeof storeSources)[number]["provider"],
+				{ imported: number; skipped: number; total: number }
+			>
+		>
+	>({})
 	const accounts = useQuery({
 		...apiQueryOptions<{
 			data: Awaited<ReturnType<typeof getConnectedAccounts>>
@@ -131,6 +157,40 @@ export default function ImportPage() {
 				queryClient.invalidateQueries({ queryKey: ["me"] }),
 				queryClient.invalidateQueries({ queryKey: ["public"] })
 			])
+	})
+	const importStore = useMutation({
+		mutationFn: (input: { provider: "epic" | "gog"; code: string }) =>
+			apiJson<{
+				data: { imported: number; skipped: number; total: number }
+			}>(`stores/${input.provider}/import`, { code: input.code }),
+		onSuccess: async (result, input) => {
+			if (
+				import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN &&
+				import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+			)
+				posthog.capture("store_library_imported", {
+					games_imported: result.data.imported,
+					games_skipped: result.data.skipped,
+					library_size: result.data.total,
+					provider: input.provider
+				})
+			posthogLogger.info("store library import completed", {
+				games_imported: result.data.imported,
+				games_skipped: result.data.skipped,
+				library_size: result.data.total,
+				provider: input.provider
+			})
+			setStoreResults((current) => ({
+				...current,
+				[input.provider]: result.data
+			}))
+			setStoreCodes((current) => ({ ...current, [input.provider]: "" }))
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ["entries"] }),
+				queryClient.invalidateQueries({ queryKey: ["me"] }),
+				queryClient.invalidateQueries({ queryKey: ["public"] })
+			])
+		}
 	})
 	return (
 		<main id="main" className="page narrow">
@@ -266,6 +326,80 @@ export default function ImportPage() {
 					</button>
 				)}
 			</div>
+			<section className={styles.storeImports}>
+				{storeSources.map((source) => {
+					const importing =
+						importStore.isPending &&
+						importStore.variables?.provider === source.provider
+					const result = storeResults[source.provider]
+					return (
+						<section
+							className={styles.storeSource}
+							key={source.provider}
+						>
+							<div className={styles.sourceHeader}>
+								<PlatformIcon provider={source.provider} />
+								<h2>{source.name}</h2>
+							</div>
+							<div className="actions">
+								<a
+									className="secondary"
+									href={source.loginUrl}
+									target="_blank"
+									rel="noreferrer"
+								>
+									Open {source.name}
+								</a>
+							</div>
+							<label className="field">
+								<span>{source.codeLabel}</span>
+								<input
+									className="input"
+									value={storeCodes[source.provider]}
+									onChange={(event) =>
+										setStoreCodes((current) => ({
+											...current,
+											[source.provider]:
+												event.target.value
+										}))
+									}
+								/>
+							</label>
+							<button
+								className="button"
+								disabled={
+									importStore.isPending ||
+									!storeCodes[source.provider].trim()
+								}
+								onClick={() =>
+									importStore.mutate({
+										code: storeCodes[source.provider],
+										provider: source.provider
+									})
+								}
+							>
+								{importing
+									? "Importing…"
+									: `Import ${source.name}`}
+							</button>
+							{result && (
+								<p className="status" role="status">
+									{result.imported} imported
+									{result.skipped
+										? `, ${result.skipped} already in your library`
+										: ""}
+									.
+								</p>
+							)}
+						</section>
+					)
+				})}
+				{importStore.error && (
+					<p className="error" role="alert">
+						{importStore.error.message}
+					</p>
+				)}
+			</section>
 		</main>
 	)
 }

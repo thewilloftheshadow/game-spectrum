@@ -9,6 +9,7 @@ import { type ApiEnv } from "./api/context"
 import { profileRoutes } from "./api/profile"
 import { publicRoutes } from "./api/public"
 import { steamRoutes } from "./api/steam"
+import { storeImportRoutes } from "./api/store-imports"
 import { mediaRoutes } from "./api/media"
 import { priceRoutes } from "./api/prices"
 
@@ -40,6 +41,7 @@ api.route("/api", mediaRoutes)
 api.route("/api/games", gameRoutes)
 api.route("/api/games/prices", priceRoutes)
 api.route("/api/steam", steamRoutes)
+api.route("/api/stores", storeImportRoutes)
 api.route("/api/public", publicRoutes)
 
 api.notFound((c) => c.json({ error: { message: "not found" } }, 404))
