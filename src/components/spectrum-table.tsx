@@ -1,6 +1,13 @@
 import { usePostHog } from "@posthog/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Fragment, useCallback, useId, useState, type ReactNode } from "react"
+import {
+	Fragment,
+	useCallback,
+	useEffect,
+	useId,
+	useState,
+	type ReactNode
+} from "react"
 import { apiJson } from "~/lib/api-client"
 import { ratingFields, ratingGroups } from "~/lib/scoring"
 import { getStorefront } from "~/lib/storefront"
@@ -59,6 +66,13 @@ export function SpectrumTable({
 		>
 	>({})
 	const [visibility, setVisibility] = useState<Record<string, boolean>>({})
+	const [rowOrder, setRowOrder] = useState<string[] | null>(null)
+	const freezeRowOrder = useCallback(() => {
+		if (!editable) return
+		setRowOrder(
+			(current) => current ?? visibleEntries.map((entry) => entry.id)
+		)
+	}, [editable, visibleEntries])
 	const changeScore = useCallback(
 		(
 			id: string,
@@ -69,19 +83,38 @@ export function SpectrumTable({
 				| "title",
 			value: string
 		) => {
+			freezeRowOrder()
 			setDrafts((current) => ({
 				...current,
 				[id]: { ...current[id], [key]: value }
 			}))
 		},
-		[]
+		[freezeRowOrder]
 	)
-	const changeVisibility = useCallback((id: string, hidden: boolean) => {
-		setVisibility((current) => ({ ...current, [id]: hidden }))
-	}, [])
+	const changeVisibility = useCallback(
+		(id: string, hidden: boolean) => {
+			freezeRowOrder()
+			setVisibility((current) => ({ ...current, [id]: hidden }))
+		},
+		[freezeRowOrder]
+	)
 	const changedIds = [
 		...new Set([...Object.keys(drafts), ...Object.keys(visibility)])
 	]
+	const rowPositions = rowOrder
+		? new Map(rowOrder.map((id, index) => [id, index]))
+		: null
+	const visibleRows = rowPositions
+		? [...visibleEntries].sort(
+				(a, b) =>
+					(rowPositions.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+					(rowPositions.get(b.id) ?? Number.MAX_SAFE_INTEGER)
+			)
+		: visibleEntries
+	useEffect(() => {
+		if ((!editable || changedIds.length === 0) && rowOrder)
+			setRowOrder(null)
+	}, [changedIds.length, editable, rowOrder])
 	const save = useMutation({
 		mutationFn: async () => {
 			const games = new Map(entries.map((entry) => [entry.id, entry]))
@@ -492,7 +525,7 @@ export function SpectrumTable({
 							}
 						}}
 					>
-						{visibleEntries.map((entry) => (
+						{visibleRows.map((entry) => (
 							<SpectrumRow
 								key={entry.id}
 								entry={entry}
