@@ -34,8 +34,9 @@ const trustedOrigins = (request?: Request) => {
 }
 
 export function getAuth(env: Cloudflare.Env) {
+	const baseURL = secret(env, "BETTER_AUTH_URL") ?? authBaseURL
 	return betterAuth({
-		baseURL: secret(env, "BETTER_AUTH_URL") ?? authBaseURL,
+		baseURL,
 		secret: requiredSecret(env, "BETTER_AUTH_SECRET"),
 		trustedOrigins,
 		database: drizzleAdapter(getDb(env.DB), {
@@ -49,7 +50,8 @@ export function getAuth(env: Cloudflare.Env) {
 			},
 			twitch: {
 				clientId: requiredSecret(env, "TWITCH_CLIENT_ID"),
-				clientSecret: requiredSecret(env, "TWITCH_CLIENT_SECRET")
+				clientSecret: requiredSecret(env, "TWITCH_CLIENT_SECRET"),
+				redirectURI: `${baseURL.replace(/\/$/, "")}/api/auth/twitch/callback`
 			}
 		},
 		account: {

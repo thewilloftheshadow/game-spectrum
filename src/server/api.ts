@@ -25,6 +25,11 @@ api.use("/api/*", async (c, next) => {
 })
 
 api.route("/api/auth", activityAuthRoutes)
+api.all("/api/auth/twitch/callback", (c) => {
+	const url = new URL(c.req.url)
+	url.pathname = "/api/auth/callback/twitch"
+	return getAuth(c.env).handler(new Request(url, c.req.raw))
+})
 api.all("/api/auth/*", (c) => getAuth(c.env).handler(c.req.raw))
 api.route("/api", carbonRoutes)
 api.get("/api", (c) => c.json({ data: { ok: true } }))

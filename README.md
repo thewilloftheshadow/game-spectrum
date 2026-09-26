@@ -71,7 +71,7 @@ Production redirect URLs:
 
 ```txt
 https://www.gamespectrum.org/api/auth/callback/discord
-https://www.gamespectrum.org/api/auth/callback/twitch
+https://www.gamespectrum.org/api/auth/twitch/callback
 ```
 
 Discord Activity/App Channel launches are supported at `/activity`, and the homepage also bootstraps the Activity when Discord supplies the required `frame_id` launch param. The Activity uses the same Discord client ID/secret and signs users into Game Spectrum before opening `/dashboard`.
