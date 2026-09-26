@@ -5,7 +5,7 @@ import {
 	useLoaderData,
 	useNavigate
 } from "react-router"
-import { setDiscordSdk } from "~/lib/discord-sdk"
+import { getDiscordSdk, setDiscordSdk } from "~/lib/discord-sdk"
 import { cloudflareContext } from "~/lib/router-context"
 
 const getSecret = (env: Cloudflare.Env, name: string) =>
@@ -27,7 +27,14 @@ export function ActivityBootstrap({ clientId }: { clientId: string | null }) {
 			if (!clientId)
 				throw new Error("Discord client ID is not configured.")
 
-			const discordSdk = new DiscordSDK(clientId)
+			const params = new URLSearchParams(window.location.search)
+			const existingDiscordSdk = getDiscordSdk()
+			if (!params.has("frame_id") && !existingDiscordSdk) {
+				throw new Error(
+					"Open Game Spectrum from Discord's App Launcher. Discord did not include the required Activity launch params."
+				)
+			}
+			const discordSdk = existingDiscordSdk ?? new DiscordSDK(clientId)
 			await discordSdk.ready()
 			setDiscordSdk(discordSdk)
 

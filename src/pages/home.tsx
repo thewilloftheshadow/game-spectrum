@@ -14,8 +14,7 @@ const getSecret = (env: Cloudflare.Env, name: string) =>
 
 export function loader({ context, request }: LoaderFunctionArgs) {
 	const url = new URL(request.url)
-	const activityLaunch =
-		url.searchParams.has("frame_id") || url.searchParams.has("instance_id")
+	const activityLaunch = url.searchParams.has("frame_id")
 	const { env } = context.get(cloudflareContext)
 	return {
 		activityClientId: activityLaunch

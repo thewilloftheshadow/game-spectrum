@@ -26,9 +26,7 @@ export default function Root() {
 	const [queryClient] = useState(() => new QueryClient())
 	const { pathname, search } = useLocation()
 	const params = new URLSearchParams(search)
-	const activityLaunch =
-		pathname === "/" &&
-		(params.has("frame_id") || params.has("instance_id"))
+	const activityLaunch = pathname === "/" && params.has("frame_id")
 	const navHidden =
 		params.get("activity") === "1" ||
 		activityLaunch ||
