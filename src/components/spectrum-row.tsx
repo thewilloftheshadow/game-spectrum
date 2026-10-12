@@ -27,7 +27,8 @@ export const SpectrumRow = memo(function SpectrumRow({
 			| (typeof ratingFields)[number]["key"]
 			| "paidPrice"
 			| "storeUrl"
-			| "title",
+			| "title"
+			| "playtimeHours",
 			string
 		>
 	>
@@ -38,7 +39,8 @@ export const SpectrumRow = memo(function SpectrumRow({
 			| (typeof ratingFields)[number]["key"]
 			| "paidPrice"
 			| "storeUrl"
-			| "title",
+			| "title"
+			| "playtimeHours",
 		value: string
 	) => void
 	onVisibilityChange: (id: string, hidden: boolean) => void
@@ -233,14 +235,45 @@ export const SpectrumRow = memo(function SpectrumRow({
 			<td
 				className={styles.hours}
 				title={
-					entry.playtimeMinutes == null
-						? "Steam playtime unavailable"
-						: `${entry.playtimeMinutes.toLocaleString()} minutes on Steam`
+					editable
+						? entry.playtimeOverridden
+							? "Manual override. Clear to resume Steam syncing."
+							: entry.playtimeMinutes == null
+								? "Steam playtime unavailable. Enter hours to override."
+								: `${entry.playtimeMinutes.toLocaleString()} minutes. Edit to override Steam syncing.`
+						: entry.playtimeMinutes == null
+							? "Playtime unavailable"
+							: `${entry.playtimeMinutes.toLocaleString()} minutes played`
 				}
 			>
-				{entry.playtimeMinutes == null
-					? "—"
-					: (entry.playtimeMinutes / 60).toFixed(1)}
+				{editable ? (
+					<input
+						form={formId}
+						aria-label={`${entry.title}: Hours Played`}
+						type="number"
+						min={0}
+						max={1_000_000}
+						step="0.1"
+						value={
+							draft.playtimeHours ??
+							(entry.playtimeMinutes == null
+								? ""
+								: (entry.playtimeMinutes / 60).toFixed(1))
+						}
+						disabled={disabled}
+						onChange={(event) =>
+							onScoreChange(
+								entry.id,
+								"playtimeHours",
+								event.target.value
+							)
+						}
+					/>
+				) : entry.playtimeMinutes == null ? (
+					"—"
+				) : (
+					(entry.playtimeMinutes / 60).toFixed(1)
+				)}
 			</td>
 			<SpectrumPrices
 				entry={entry}

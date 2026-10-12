@@ -1,0 +1,1 @@
+ALTER TABLE `game_entries` ADD `playtime_overridden` integer DEFAULT false NOT NULL;

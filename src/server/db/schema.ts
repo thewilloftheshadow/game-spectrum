@@ -180,6 +180,9 @@ export const gameEntries = sqliteTable(
 			.notNull(),
 		steamAppId: integer("steam_app_id"),
 		playtimeMinutes: integer("playtime_minutes"),
+		playtimeOverridden: integer("playtime_overridden", { mode: "boolean" })
+			.default(false)
+			.notNull(),
 		paidPriceCents: integer("paid_price_cents"),
 		storeUrl: text("store_url"),
 		funFeeling: real("fun_feeling"),

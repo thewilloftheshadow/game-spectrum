@@ -61,6 +61,7 @@ const gameEntryUpdate = z
 		importedFromSteam: z.boolean().optional(),
 		steamAppId: z.number().int().nullable().optional(),
 		playtimeMinutes: z.number().int().nullable().optional(),
+		playtimeOverridden: z.boolean().optional(),
 		paidPriceCents: z.number().int().nullable().optional(),
 		storeUrl: z.string().nullable().optional(),
 		funFeeling: z.number().nullable().optional(),

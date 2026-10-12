@@ -31,7 +31,12 @@ const numberFields = new Set([
 	"replayabilityBonus",
 	"extraPercent"
 ])
-const booleanFields = new Set(["isPublic", "hidden", "importedFromSteam"])
+const booleanFields = new Set([
+	"isPublic",
+	"hidden",
+	"importedFromSteam",
+	"playtimeOverridden"
+])
 const nullableFields = new Set([
 	"avatarUrl",
 	"steamVanity",

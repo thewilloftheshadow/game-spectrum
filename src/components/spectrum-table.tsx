@@ -24,7 +24,12 @@ export type SpectrumGame = Pick<
 	| "storeUrl"
 	| (typeof ratingFields)[number]["key"]
 > &
-	Partial<Pick<typeof gameEntries.$inferSelect, "paidPriceCents">> & {
+	Partial<
+		Pick<
+			typeof gameEntries.$inferSelect,
+			"paidPriceCents" | "playtimeOverridden"
+		>
+	> & {
 		title: string
 		customCoverUrl: string | null
 		coverUrl: string | null
@@ -59,7 +64,8 @@ export function SpectrumTable({
 					| (typeof ratingFields)[number]["key"]
 					| "paidPrice"
 					| "storeUrl"
-					| "title",
+					| "title"
+					| "playtimeHours",
 					string
 				>
 			>
@@ -80,7 +86,8 @@ export function SpectrumTable({
 				| (typeof ratingFields)[number]["key"]
 				| "paidPrice"
 				| "storeUrl"
-				| "title",
+				| "title"
+				| "playtimeHours",
 			value: string
 		) => {
 			freezeRowOrder()
@@ -160,6 +167,25 @@ export function SpectrumTable({
 						field.key === "extraPercent"
 							? Math.round((1 + number / 100) * 1000) / 1000
 							: number
+				}
+				const playtimeHours = drafts[id]?.playtimeHours
+				if (playtimeHours !== undefined) {
+					if (playtimeHours.trim() === "")
+						values.playtimeMinutes = null
+					else {
+						const hours = Number(playtimeHours)
+						if (
+							!Number.isFinite(hours) ||
+							hours < 0 ||
+							hours > 1_000_000 ||
+							Math.abs(hours * 10 - Math.round(hours * 10)) >
+								0.000001
+						)
+							throw new Error(
+								`${game.title}: hours played must be between 0 and 1,000,000, with at most one decimal place.`
+							)
+						values.playtimeMinutes = Math.round(hours * 60)
+					}
 				}
 				const paid = drafts[id]?.paidPrice
 				if (paid !== undefined) {
@@ -346,7 +372,11 @@ export function SpectrumTable({
 								scope="col"
 								rowSpan={2}
 								className={styles.hours}
-								title="Synced from Steam every 48 hours, or use Sync playtime."
+								title={
+									editable
+										? "Edit hours to override Steam. Clear the value to resume syncing."
+										: "Hours played from Steam or a manual override."
+								}
 							>
 								Hours Played
 							</th>

@@ -59,7 +59,7 @@ export const prepareSteamPlaytimeUpdate = (
 ) =>
 	env.DB.prepare(`WITH playtime AS (SELECT CAST(key AS INTEGER) AS app_id, CAST(value AS INTEGER) AS minutes FROM json_each(?))
 	UPDATE game_entries SET playtime_minutes = playtime.minutes, updated_at = ? FROM playtime
-	WHERE game_entries.user_id = ? AND (game_entries.steam_app_id = playtime.app_id OR
+	WHERE game_entries.user_id = ? AND game_entries.playtime_overridden = 0 AND (game_entries.steam_app_id = playtime.app_id OR
 	(game_entries.steam_app_id IS NULL AND game_entries.game_id = (SELECT id FROM games WHERE games.steam_app_id = playtime.app_id)))`).bind(
 		JSON.stringify(
 			Object.fromEntries(

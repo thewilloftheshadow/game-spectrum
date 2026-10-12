@@ -122,12 +122,25 @@ entryRoutes.patch("/entries/:id", async (c) => {
 					.max(99_999_999)
 					.nullable()
 					.optional(),
+				playtimeMinutes: z
+					.number()
+					.int()
+					.min(0)
+					.max(60_000_000)
+					.nullable()
+					.optional(),
 				notes: z.string().max(1200).optional().nullable()
 			})
 			.parse(body)
 		await getDb(c.env.DB)
 			.update(gameEntries)
-			.set({ ...scores, ...parsed })
+			.set({
+				...scores,
+				...parsed,
+				...(parsed.playtimeMinutes !== undefined && {
+					playtimeOverridden: parsed.playtimeMinutes !== null
+				})
+			})
 			.where(
 				and(
 					eq(gameEntries.id, c.req.param("id")),
