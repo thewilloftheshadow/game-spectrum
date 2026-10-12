@@ -1,56 +1,433 @@
-.entry {
+.page {
+	max-width: 1360px;
+	padding-top: 54px;
+}
+
+.heading {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 12px;
-	padding: 16px 0;
+	align-items: end;
+	justify-content: space-between;
+	gap: 32px;
+	padding-bottom: 30px;
+}
+
+.eyebrow {
+	margin-bottom: 10px;
+	color: var(--accent);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+
+.eyebrow a:hover {
+	color: var(--text);
+}
+
+.eyebrow span {
+	padding: 0 8px;
+	color: var(--muted);
+}
+
+.subtitle {
+	margin-top: 10px;
+	color: var(--muted);
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.count {
+	display: grid;
+	justify-items: end;
+	padding-bottom: 3px;
+}
+
+.count span {
+	font-size: 28px;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -0.04em;
+}
+
+.count small {
+	color: var(--muted);
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.nav {
+	display: flex;
+	gap: 26px;
 	border-bottom: 1px solid var(--line);
 }
 
-.entry pre {
-	max-width: 100%;
-	overflow-x: auto;
+.nav a {
+	padding: 0 0 13px;
+	border-bottom: 2px solid transparent;
+	color: var(--muted);
+	font-size: 13px;
+	transition:
+		color 160ms ease,
+		border-color 160ms ease;
+}
+
+.nav a:hover,
+.nav a[aria-current="page"] {
+	border-color: var(--accent);
+	color: var(--text);
+}
+
+.workspace {
+	margin-top: 38px;
+}
+
+.toolbar,
+.sectionHeading,
+.editorHeading,
+.editorFooter {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+}
+
+.toolbar {
+	margin-bottom: 20px;
+}
+
+.toolbar h2,
+.sectionHeading h2,
+.editorHeading h2 {
+	font-size: 20px;
+	letter-spacing: -0.035em;
+}
+
+.toolbar p,
+.helper {
+	margin-top: 6px;
+	color: var(--muted);
+	font-size: 12px;
+}
+
+.search {
+	width: min(360px, 100%);
+}
+
+.search input {
+	min-height: 40px;
 }
 
 .tableWrap {
+	width: 100%;
 	overflow-x: auto;
 }
 
-.table {
+.accountsTable {
 	width: 100%;
 	border-collapse: collapse;
 	text-align: left;
 }
 
-.table th,
-.table td {
-	padding: 12px 16px;
+.accountsTable th {
+	padding: 11px 14px;
+	border-bottom: 1px solid var(--line);
+	color: var(--muted);
+	font-size: 10px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.accountsTable td {
+	padding: 15px 14px;
+	border-bottom: 1px solid color-mix(in srgb, var(--line), transparent 28%);
+	font-size: 13px;
+	vertical-align: middle;
+}
+
+.accountsTable tbody tr {
+	transition: background 140ms ease;
+}
+
+.accountsTable tbody tr:hover {
+	background: color-mix(in srgb, var(--surface), transparent 25%);
+}
+
+.accountsTable td strong,
+.secondaryText {
+	display: block;
+}
+
+.accountsTable td strong {
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.secondaryText {
+	margin-top: 4px;
+	color: var(--muted);
+	font-size: 11px;
+}
+
+.statusActive,
+.statusBanned {
+	font-size: 11px;
+	white-space: nowrap;
+}
+
+.statusActive::before,
+.statusBanned::before {
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	margin: 0 8px 1px 0;
+	border-radius: 50%;
+	background: var(--accent);
+	content: "";
+}
+
+.statusBanned::before {
+	background: var(--danger);
+}
+
+.date,
+.score {
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.openCell {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.openCell a {
+	min-height: 32px;
+	padding: 6px 8px;
+}
+
+.empty {
+	padding: 36px 0;
+	color: var(--muted);
+	font-size: 13px;
+}
+
+.loading {
+	display: grid;
+	gap: 1px;
+	padding: 8px 0;
+}
+
+.loading div {
+	height: 54px;
+	background: linear-gradient(
+		90deg,
+		var(--surface),
+		var(--raised),
+		var(--surface)
+	);
+	background-size: 220% 100%;
+	animation: shimmer 1.4s ease infinite;
+}
+
+@keyframes shimmer {
+	to {
+		background-position: -220% 0;
+	}
+}
+
+.memberActions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding: 18px 0;
 	border-bottom: 1px solid var(--line);
 }
 
-.table td pre {
-	max-width: 48vw;
-	max-height: 260px;
-	overflow: auto;
-	white-space: pre-wrap;
-}
-
-.table td textarea {
-	min-width: 300px;
-	min-height: 240px;
-}
-
-.table th {
-	color: var(--muted);
+.memberActions button {
+	min-height: 36px;
+	padding: 7px 12px;
 	font-size: 12px;
-	font-weight: 500;
+}
+
+.memberSection {
+	margin-top: 36px;
+}
+
+.sectionHeading {
+	margin-bottom: 18px;
+}
+
+.sectionHeading .eyebrow {
+	margin-bottom: 7px;
+}
+
+.profileGrid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	border-top: 1px solid var(--line);
+}
+
+.profileGrid > div {
+	min-width: 0;
+	padding: 16px 18px 16px 0;
+	border-bottom: 1px solid color-mix(in srgb, var(--line), transparent 28%);
+}
+
+.profileGrid dt {
+	margin-bottom: 7px;
+	color: var(--muted);
+	font-size: 10px;
+	letter-spacing: 0.07em;
 	text-transform: uppercase;
 }
 
-.table tbody tr:hover {
-	background: var(--raised);
+.profileGrid dd {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.55;
+	overflow-wrap: anywhere;
 }
 
-.table a[aria-current="page"] {
+.profileGrid .bio {
+	grid-column: 1 / -1;
+}
+
+.banReason {
+	margin-top: 16px;
+	color: var(--danger);
+	font-size: 12px;
+}
+
+.filters {
+	display: flex;
+	gap: 10px;
+	width: min(560px, 100%);
+}
+
+.filters > * {
+	flex: 1;
+	min-width: 0;
+}
+
+.editor {
+	max-width: 960px;
+	margin-top: 32px;
+}
+
+.editorHeading {
+	align-items: end;
+	padding-bottom: 18px;
+	border-bottom: 1px solid var(--line);
+}
+
+.editorHeading .eyebrow {
+	margin-bottom: 7px;
+}
+
+.helper {
+	margin: 0;
+	text-align: right;
+}
+
+.fields {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	column-gap: 28px;
+	row-gap: 20px;
+	padding: 24px 0;
+}
+
+.field {
+	display: grid;
+	align-content: start;
+	gap: 8px;
+	color: var(--muted);
+	font-size: 12px;
+}
+
+.field:has(textarea) {
+	grid-column: 1 / -1;
+}
+
+.field small {
+	font-size: 11px;
+}
+
+.booleanField {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 43px;
+	color: var(--text);
+}
+
+.booleanField input {
+	width: 16px;
+	height: 16px;
+	accent-color: var(--accent);
+}
+
+.editorFooter {
+	justify-content: flex-start;
+	padding-top: 17px;
+	border-top: 1px solid var(--line);
+}
+
+.editorFooter button {
+	min-height: 38px;
+}
+
+.saved {
+	margin: 0 0 12px;
 	color: var(--accent);
+	font-size: 12px;
+}
+
+@media (max-width: 760px) {
+	.page {
+		padding-top: 30px;
+	}
+
+	.heading,
+	.toolbar,
+	.editorHeading {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.count {
+		justify-items: start;
+	}
+
+	.search,
+	.filters {
+		width: 100%;
+	}
+
+	.accountsTable th,
+	.accountsTable td {
+		padding-right: 10px;
+		padding-left: 10px;
+	}
+
+	.profileGrid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.fields {
+		grid-template-columns: 1fr;
+	}
+
+	.field:has(textarea),
+	.profileGrid .bio {
+		grid-column: auto;
+	}
+
+	.helper {
+		text-align: left;
+	}
 }

@@ -216,9 +216,93 @@ adminRoutes.get("/admin/data/:table", async (c) => {
 				: table === "games"
 					? await db.select().from(games)
 					: table === "gameEntries"
-						? await db.select().from(gameEntries)
-						: await db.select().from(mergeSuggestions)
+						? await db
+								.select({
+									entry: gameEntries,
+									gameTitle: games.title,
+									ownerName: user.name
+								})
+								.from(gameEntries)
+								.leftJoin(
+									games,
+									eq(gameEntries.gameId, games.id)
+								)
+								.innerJoin(
+									user,
+									eq(gameEntries.userId, user.id)
+								)
+								.then((rows) =>
+									rows.map(
+										({ entry, gameTitle, ownerName }) => ({
+											...entry,
+											gameTitle,
+											ownerName
+										})
+									)
+								)
+						: await db
+								.select({
+									suggestion: mergeSuggestions,
+									ownerName: user.name
+								})
+								.from(mergeSuggestions)
+								.innerJoin(
+									user,
+									eq(mergeSuggestions.userId, user.id)
+								)
+								.then((rows) =>
+									rows.map(({ suggestion, ownerName }) => ({
+										...suggestion,
+										ownerName
+									}))
+								)
 		return c.json({ data })
+	} catch (error) {
+		const unauthorized = (error as Error).message === "Sign in required"
+		return c.json(
+			jsonError(
+				unauthorized ? "Sign in required" : "Admin access required",
+				unauthorized ? 401 : 403
+			),
+			unauthorized ? 401 : 403
+		)
+	}
+})
+
+adminRoutes.get("/admin/data/:table/:id", async (c) => {
+	try {
+		await requireAdmin(c.env, c.req.raw.headers)
+		const table = c.req.param("table")
+		const id = c.req.param("id")
+		const db = getDb(c.env.DB)
+		const record =
+			table === "profiles"
+				? await db
+						.select()
+						.from(profiles)
+						.where(eq(profiles.userId, id))
+						.get()
+				: table === "games"
+					? await db
+							.select()
+							.from(games)
+							.where(eq(games.id, id))
+							.get()
+					: table === "gameEntries"
+						? await db
+								.select()
+								.from(gameEntries)
+								.where(eq(gameEntries.id, id))
+								.get()
+						: table === "mergeSuggestions"
+							? await db
+									.select()
+									.from(mergeSuggestions)
+									.where(eq(mergeSuggestions.id, id))
+									.get()
+							: null
+		if (!record) return c.json(jsonError("Record not found.", 404), 404)
+		return c.json({ data: record })
 	} catch (error) {
 		const unauthorized = (error as Error).message === "Sign in required"
 		return c.json(
@@ -280,18 +364,23 @@ adminRoutes.patch("/admin/data/:table/:id", async (c) => {
 			: c.json(jsonError("Record not found.", 404), 404)
 	} catch (error) {
 		const unauthorized = (error as Error).message === "Sign in required"
+		const forbidden = (error as Error).message === "Admin access required"
 		const status = unauthorized
 			? 401
-			: error instanceof z.ZodError
-				? 400
-				: 403
+			: forbidden
+				? 403
+				: error instanceof z.ZodError
+					? 400
+					: 500
 		return c.json(
 			jsonError(
 				unauthorized
 					? "Sign in required"
-					: error instanceof z.ZodError
-						? error.issues[0].message
-						: "Admin access required",
+					: forbidden
+						? "Admin access required"
+						: error instanceof z.ZodError
+							? error.issues[0].message
+							: "Unable to update this record.",
 				status
 			),
 			status
@@ -343,12 +432,18 @@ adminRoutes.delete("/admin/data/:table/:id", async (c) => {
 			: c.json(jsonError("Record not found.", 404), 404)
 	} catch (error) {
 		const unauthorized = (error as Error).message === "Sign in required"
+		const forbidden = (error as Error).message === "Admin access required"
+		const status = unauthorized ? 401 : forbidden ? 403 : 500
 		return c.json(
 			jsonError(
-				unauthorized ? "Sign in required" : "Admin access required",
-				unauthorized ? 401 : 403
+				unauthorized
+					? "Sign in required"
+					: forbidden
+						? "Admin access required"
+						: "Unable to delete this record.",
+				status
 			),
-			unauthorized ? 401 : 403
+			status
 		)
 	}
 })

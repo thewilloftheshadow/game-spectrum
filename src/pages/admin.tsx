@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query"
-import { Link, useSearchParams } from "react-router"
-import { useState } from "react"
-import { apiClient, apiQueryOptions } from "~/lib/api-client"
-import { authClient } from "~/lib/auth-client"
-import type { gameEntries, profiles } from "~/server/db/schema"
+import { useDeferredValue, useState } from "react"
+import { Link } from "react-router"
+import { AdminNav } from "~/components/admin-nav"
+import { apiQueryOptions } from "~/lib/api-client"
+import type { profiles } from "~/server/db/schema"
 import styles from "./admin.module.css"
 
 export default function AdminPage() {
+	const [search, setSearch] = useState("")
+	const query = useDeferredValue(search.trim().toLowerCase())
 	const users = useQuery(
 		apiQueryOptions<{
 			data: {
@@ -15,454 +17,167 @@ export default function AdminPage() {
 				email: string
 				role: string | null
 				banned: boolean | null
+				createdAt: string
 				profile: typeof profiles.$inferSelect | null
 			}[]
 		}>(["admin", "users"], "admin/users")
 	)
-	const [searchParams, setSearchParams] = useSearchParams()
-	const selectedId = searchParams.get("user") ?? ""
-	const [error, setError] = useState("")
-	const [dataTable, setDataTable] = useState<
-		"profiles" | "games" | "gameEntries" | "mergeSuggestions"
-	>("profiles")
-	const [editingId, setEditingId] = useState("")
-	const [draft, setDraft] = useState("")
-	const appData = useQuery(
-		apiQueryOptions<{ data: Record<string, unknown>[] }>(
-			["admin", "data", dataTable],
-			`admin/data/${dataTable}`
-		)
+	const records = users.data?.data.filter((item) =>
+		[item.name, item.email, item.profile?.displayName, item.profile?.slug]
+			.join(" ")
+			.toLowerCase()
+			.includes(query)
 	)
-	const details = useQuery({
-		...apiQueryOptions<{
-			data: {
-				id: string
-				name: string
-				email: string
-				role: string | null
-				banned: boolean | null
-				profile: typeof profiles.$inferSelect | null
-				entries: (typeof gameEntries.$inferSelect & {
-					title: string
-					score: number | null
-					hidden: boolean
-					notes: string | null
-				})[]
-			}
-		}>(
-			["admin", "user", selectedId],
-			`admin/users/${encodeURIComponent(selectedId)}`
-		),
-		enabled: !!selectedId
-	})
 
 	return (
-		<main id="main" className="page">
-			<h1 className="title">Admin</h1>
-			<p>
-				Private profiles and ratings are visible only to the linked
-				admin account.
-			</p>
-			{users.isPending && (
-				<div className="skeleton" aria-label="Loading users" />
-			)}
-			{users.error && (
-				<p className="error" role="alert">
-					{users.error.message}
-				</p>
-			)}
-			{error && (
-				<p className="error" role="alert">
-					{error}
-				</p>
-			)}
-			<section className="section">
-				<h2>App Data</h2>
-				<label className="field">
-					Table
-					<select
-						className="select"
-						value={dataTable}
-						onChange={(event) => {
-							setDataTable(event.target.value as typeof dataTable)
-							setEditingId("")
-						}}
-					>
-						<option value="profiles">Profiles</option>
-						<option value="games">Games</option>
-						<option value="gameEntries">Ratings</option>
-						<option value="mergeSuggestions">
-							Merge Suggestions
-						</option>
-					</select>
-				</label>
-				{appData.isPending ? (
-					<div className="skeleton" aria-label="Loading app data" />
-				) : appData.error ? (
-					<p className="error" role="alert">
-						{appData.error.message}
+		<main id="main" className={`page ${styles.page}`}>
+			<header className={styles.heading}>
+				<div>
+					<p className={styles.eyebrow}>Game Spectrum · Admin</p>
+					<h1 className="title">Accounts</h1>
+					<p className={styles.subtitle}>
+						Manage member profiles, access, and saved ratings.
 					</p>
-				) : (
-					<div className={styles.tableWrap}>
-						<table className={styles.table}>
-							<thead>
-								<tr>
-									<th scope="col">Record</th>
-									<th scope="col">Data</th>
-									<th scope="col">Actions</th>
-								</tr>
-							</thead>
-							<tbody>
-								{appData.data?.data.map((record) => {
-									const id = String(
-										record.userId ?? record.id
-									)
-									const editable = Object.fromEntries(
-										Object.entries(record).filter(
-											([key]) =>
-												![
-													"id",
-													"userId",
-													"createdAt",
-													"updatedAt"
-												].includes(key)
-										)
-									)
-									return (
-										<tr key={id}>
-											<td>{id}</td>
-											<td>
-												<pre>
-													{JSON.stringify(
-														record,
-														null,
-														2
-													)}
-												</pre>
-											</td>
-											<td>
-												{editingId === id ? (
-													<>
-														<textarea
-															className="textarea"
-															value={draft}
-															onChange={(event) =>
-																setDraft(
-																	event.target
-																		.value
-																)
-															}
-														/>
-														<button
-															className="secondary"
-															onClick={async () => {
-																try {
-																	await apiClient(
-																		`admin/data/${dataTable}/${encodeURIComponent(id)}`,
-																		{
-																			method: "PATCH",
-																			headers:
-																				{
-																					"content-type":
-																						"application/json"
-																				},
-																			body: draft
-																		}
-																	)
-																	setEditingId(
-																		""
-																	)
-																	await appData.refetch()
-																} catch (failure) {
-																	setError(
-																		failure instanceof
-																			Error
-																			? failure.message
-																			: "Unable to save record."
-																	)
-																}
-															}}
-														>
-															Save
-														</button>
-														<button
-															className="quiet"
-															onClick={() =>
-																setEditingId("")
-															}
-														>
-															Cancel
-														</button>
-													</>
-												) : (
-													<div className="actions">
-														<button
-															className="secondary"
-															onClick={() => {
-																setEditingId(id)
-																setDraft(
-																	JSON.stringify(
-																		editable,
-																		null,
-																		2
-																	)
-																)
-															}}
-														>
-															Edit
-														</button>
-														<button
-															className="quiet"
-															onClick={async () => {
-																if (
-																	!window.confirm(
-																		`Delete ${dataTable} record ${id}?`
-																	)
-																)
-																	return
-																try {
-																	await apiClient(
-																		`admin/data/${dataTable}/${encodeURIComponent(id)}`,
-																		{
-																			method: "DELETE"
-																		}
-																	)
-																	await appData.refetch()
-																} catch (failure) {
-																	setError(
-																		failure instanceof
-																			Error
-																			? failure.message
-																			: "Unable to delete record."
-																	)
-																}
-															}}
-														>
-															Delete
-														</button>
-													</div>
-												)}
-											</td>
-										</tr>
-									)
-								})}
-							</tbody>
-						</table>
+				</div>
+				<div className={styles.count}>
+					<span>{users.data?.data.length ?? "—"}</span>
+					<small>accounts</small>
+				</div>
+			</header>
+			<AdminNav active="accounts" />
+
+			<section
+				className={styles.workspace}
+				aria-labelledby="accounts-title"
+			>
+				<div className={styles.toolbar}>
+					<div>
+						<h2 id="accounts-title">All accounts</h2>
+						<p>Private profile and rating data is admin-only.</p>
 					</div>
-				)}
-			</section>
-			{users.data && (
-				<section className="section">
-					<h2>Users ({users.data.data.length})</h2>
+					<label className={styles.search}>
+						<span className="sr-only">Search accounts</span>
+						<input
+							className="input"
+							type="search"
+							placeholder="Name, email, or profile URL"
+							value={search}
+							onChange={(event) => setSearch(event.target.value)}
+						/>
+					</label>
+				</div>
+
+				{users.isPending ? (
+					<div
+						className={styles.loading}
+						aria-label="Loading accounts"
+					>
+						{Array.from({ length: 5 }, (_, index) => (
+							<div key={index} />
+						))}
+					</div>
+				) : users.error ? (
+					<p className="error" role="alert">
+						{users.error.message}
+					</p>
+				) : records?.length ? (
 					<div className={styles.tableWrap}>
-						<table className={styles.table}>
+						<table className={styles.accountsTable}>
 							<thead>
 								<tr>
-									<th scope="col">Name</th>
-									<th scope="col">Email</th>
+									<th scope="col">Member</th>
+									<th scope="col">Profile</th>
 									<th scope="col">Role</th>
 									<th scope="col">Status</th>
+									<th scope="col">Joined</th>
+									<th scope="col">
+										<span className="sr-only">Open</span>
+									</th>
 								</tr>
 							</thead>
 							<tbody>
-								{users.data.data.map((item) => (
+								{records.map((item) => (
 									<tr key={item.id}>
 										<td>
-											<Link
-												to={`?user=${encodeURIComponent(item.id)}`}
-												aria-current={
-													selectedId === item.id
-														? "page"
-														: undefined
-												}
-											>
+											<strong>
 												{item.profile?.displayName ??
 													item.name}
-											</Link>
+											</strong>
+											<span
+												className={styles.secondaryText}
+											>
+												{item.email}
+											</span>
 										</td>
-										<td>{item.email}</td>
-										<td>{item.role ?? "user"}</td>
 										<td>
-											{item.banned ? "Banned" : "Active"}
+											{item.profile ? (
+												<>
+													<span>
+														/{item.profile.slug}
+													</span>
+													<span
+														className={
+															styles.secondaryText
+														}
+													>
+														{item.profile.isPublic
+															? "Public"
+															: "Private"}
+													</span>
+												</>
+											) : (
+												<span
+													className={
+														styles.secondaryText
+													}
+												>
+													No profile
+												</span>
+											)}
+										</td>
+										<td>{item.role ?? "Member"}</td>
+										<td>
+											<span
+												className={
+													item.banned
+														? styles.statusBanned
+														: styles.statusActive
+												}
+											>
+												{item.banned
+													? "Banned"
+													: "Active"}
+											</span>
+										</td>
+										<td className={styles.date}>
+											{new Date(
+												item.createdAt
+											).toLocaleDateString()}
+										</td>
+										<td className={styles.openCell}>
+											<Link
+												className="quiet"
+												to={`/admin/users/${encodeURIComponent(item.id)}`}
+											>
+												Open{" "}
+												<span aria-hidden="true">
+													→
+												</span>
+											</Link>
 										</td>
 									</tr>
 								))}
 							</tbody>
 						</table>
 					</div>
-				</section>
-			)}
-			{details.data && (
-				<section className="section">
-					<h2>
-						{details.data.data.profile?.displayName ??
-							details.data.data.name}
-					</h2>
-					<p>
-						{details.data.data.email} · Role:{" "}
-						{details.data.data.role ?? "user"}
+				) : (
+					<p className={styles.empty}>
+						{query
+							? "No accounts match that search."
+							: "No accounts yet."}
 					</p>
-					<div className="actions">
-						<button
-							className="secondary"
-							onClick={async () => {
-								setError("")
-								const result = details.data.data.banned
-									? await authClient.admin.unbanUser({
-											userId: selectedId
-										})
-									: await authClient.admin.banUser({
-											userId: selectedId,
-											banReason:
-												window.prompt("Ban reason") ??
-												"Admin action"
-										})
-								if (result.error)
-									setError(
-										result.error.message ??
-											"Unable to update ban."
-									)
-								else
-									await Promise.all([
-										users.refetch(),
-										details.refetch()
-									])
-							}}
-						>
-							{details.data.data.banned ? "Unban" : "Ban"}
-						</button>
-						<button
-							className="secondary"
-							onClick={async () => {
-								const result = await authClient.admin.setRole({
-									userId: selectedId,
-									role:
-										details.data.data.role === "admin"
-											? "user"
-											: "admin"
-								})
-								if (result.error)
-									setError(
-										result.error.message ??
-											"Unable to change role."
-									)
-								else
-									await Promise.all([
-										users.refetch(),
-										details.refetch()
-									])
-							}}
-						>
-							{details.data.data.role === "admin"
-								? "Remove Admin Role"
-								: "Grant Admin Role"}
-						</button>
-						<button
-							className="secondary"
-							onClick={async () => {
-								if (
-									!window.confirm(
-										"Revoke every session for this user?"
-									)
-								)
-									return
-								const result =
-									await authClient.admin.revokeUserSessions({
-										userId: selectedId
-									})
-								if (result.error)
-									setError(
-										result.error.message ??
-											"Unable to revoke sessions."
-									)
-							}}
-						>
-							Revoke Sessions
-						</button>
-						<button
-							className="secondary"
-							onClick={async () => {
-								if (
-									!window.confirm(
-										"Permanently delete this account and its data?"
-									)
-								)
-									return
-								const result =
-									await authClient.admin.removeUser({
-										userId: selectedId
-									})
-								if (result.error)
-									setError(
-										result.error.message ??
-											"Unable to delete user."
-									)
-								else {
-									setSearchParams({})
-									await users.refetch()
-								}
-							}}
-						>
-							Delete User
-						</button>
-					</div>
-					<button
-						className="secondary"
-						onClick={async () => {
-							setError("")
-							try {
-								const result =
-									await authClient.admin.impersonateUser({
-										userId: selectedId
-									})
-								if (result.error) {
-									setError(
-										result.error.message ??
-											"Unable to impersonate user."
-									)
-									return
-								}
-								window.location.assign("/dashboard")
-							} catch (failure) {
-								setError(
-									failure instanceof Error
-										? failure.message
-										: "Unable to impersonate user."
-								)
-							}
-						}}
-					>
-						Impersonate
-					</button>
-					{details.data.data.profile && (
-						<>
-							<h3>Profile</h3>
-							<pre>
-								{JSON.stringify(
-									details.data.data.profile,
-									null,
-									2
-								)}
-							</pre>
-						</>
-					)}
-					<h3>
-						Private ratings ({details.data.data.entries.length})
-					</h3>
-					{details.data.data.entries.map((entry) => (
-						<details key={entry.id} className={styles.entry}>
-							<summary>
-								{entry.title}
-								{entry.hidden ? " · Hidden" : ""}
-								{entry.score !== null
-									? ` · Score ${entry.score}`
-									: " · Incomplete"}
-							</summary>
-							<pre>{JSON.stringify(entry, null, 2)}</pre>
-						</details>
-					))}
-				</section>
-			)}
+				)}
+			</section>
 		</main>
 	)
 }
