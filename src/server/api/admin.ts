@@ -133,6 +133,7 @@ adminRoutes.get("/admin/users", async (c) => {
 				email: user.email,
 				role: user.role,
 				banned: user.banned,
+				createdAt: user.createdAt,
 				banReason: user.banReason,
 				banExpires: user.banExpires,
 				profile: profiles
