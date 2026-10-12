@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { Link, useSearchParams } from "react-router"
 import { useState } from "react"
-import { apiQueryOptions } from "~/lib/api-client"
+import { apiClient, apiQueryOptions } from "~/lib/api-client"
 import { authClient } from "~/lib/auth-client"
 import type { gameEntries, profiles } from "~/server/db/schema"
 import styles from "./admin.module.css"
@@ -22,6 +22,17 @@ export default function AdminPage() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const selectedId = searchParams.get("user") ?? ""
 	const [error, setError] = useState("")
+	const [dataTable, setDataTable] = useState<
+		"profiles" | "games" | "gameEntries" | "mergeSuggestions"
+	>("profiles")
+	const [editingId, setEditingId] = useState("")
+	const [draft, setDraft] = useState("")
+	const appData = useQuery(
+		apiQueryOptions<{ data: Record<string, unknown>[] }>(
+			["admin", "data", dataTable],
+			`admin/data/${dataTable}`
+		)
+	)
 	const details = useQuery({
 		...apiQueryOptions<{
 			data: {
@@ -65,6 +76,181 @@ export default function AdminPage() {
 					{error}
 				</p>
 			)}
+			<section className="section">
+				<h2>App Data</h2>
+				<label className="field">
+					Table
+					<select
+						className="select"
+						value={dataTable}
+						onChange={(event) => {
+							setDataTable(event.target.value as typeof dataTable)
+							setEditingId("")
+						}}
+					>
+						<option value="profiles">Profiles</option>
+						<option value="games">Games</option>
+						<option value="gameEntries">Ratings</option>
+						<option value="mergeSuggestions">
+							Merge Suggestions
+						</option>
+					</select>
+				</label>
+				{appData.isPending ? (
+					<div className="skeleton" aria-label="Loading app data" />
+				) : appData.error ? (
+					<p className="error" role="alert">
+						{appData.error.message}
+					</p>
+				) : (
+					<div className={styles.tableWrap}>
+						<table className={styles.table}>
+							<thead>
+								<tr>
+									<th scope="col">Record</th>
+									<th scope="col">Data</th>
+									<th scope="col">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								{appData.data?.data.map((record) => {
+									const id = String(
+										record.userId ?? record.id
+									)
+									const editable = Object.fromEntries(
+										Object.entries(record).filter(
+											([key]) =>
+												![
+													"id",
+													"userId",
+													"createdAt",
+													"updatedAt"
+												].includes(key)
+										)
+									)
+									return (
+										<tr key={id}>
+											<td>{id}</td>
+											<td>
+												<pre>
+													{JSON.stringify(
+														record,
+														null,
+														2
+													)}
+												</pre>
+											</td>
+											<td>
+												{editingId === id ? (
+													<>
+														<textarea
+															className="textarea"
+															value={draft}
+															onChange={(event) =>
+																setDraft(
+																	event.target
+																		.value
+																)
+															}
+														/>
+														<button
+															className="secondary"
+															onClick={async () => {
+																try {
+																	await apiClient(
+																		`admin/data/${dataTable}/${encodeURIComponent(id)}`,
+																		{
+																			method: "PATCH",
+																			headers:
+																				{
+																					"content-type":
+																						"application/json"
+																				},
+																			body: draft
+																		}
+																	)
+																	setEditingId(
+																		""
+																	)
+																	await appData.refetch()
+																} catch (failure) {
+																	setError(
+																		failure instanceof
+																			Error
+																			? failure.message
+																			: "Unable to save record."
+																	)
+																}
+															}}
+														>
+															Save
+														</button>
+														<button
+															className="quiet"
+															onClick={() =>
+																setEditingId("")
+															}
+														>
+															Cancel
+														</button>
+													</>
+												) : (
+													<div className="actions">
+														<button
+															className="secondary"
+															onClick={() => {
+																setEditingId(id)
+																setDraft(
+																	JSON.stringify(
+																		editable,
+																		null,
+																		2
+																	)
+																)
+															}}
+														>
+															Edit
+														</button>
+														<button
+															className="quiet"
+															onClick={async () => {
+																if (
+																	!window.confirm(
+																		`Delete ${dataTable} record ${id}?`
+																	)
+																)
+																	return
+																try {
+																	await apiClient(
+																		`admin/data/${dataTable}/${encodeURIComponent(id)}`,
+																		{
+																			method: "DELETE"
+																		}
+																	)
+																	await appData.refetch()
+																} catch (failure) {
+																	setError(
+																		failure instanceof
+																			Error
+																			? failure.message
+																			: "Unable to delete record."
+																	)
+																}
+															}}
+														>
+															Delete
+														</button>
+													</div>
+												)}
+											</td>
+										</tr>
+									)
+								})}
+							</tbody>
+						</table>
+					</div>
+				)}
+			</section>
 			{users.data && (
 				<section className="section">
 					<h2>Users ({users.data.data.length})</h2>
@@ -264,7 +450,7 @@ export default function AdminPage() {
 						Private ratings ({details.data.data.entries.length})
 					</h3>
 					{details.data.data.entries.map((entry) => (
-						<details key={entry.id} className="row">
+						<details key={entry.id} className={styles.entry}>
 							<summary>
 								{entry.title}
 								{entry.hidden ? " · Hidden" : ""}

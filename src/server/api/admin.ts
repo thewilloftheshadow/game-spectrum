@@ -1,12 +1,101 @@
 import { and, eq } from "drizzle-orm"
 import { Hono } from "hono"
+import { z } from "zod"
 import { calculateScore } from "~/lib/scoring"
 import { getAuth } from "../auth"
 import { getDb } from "../db"
-import { account, gameEntries, games, profiles, user } from "../db/schema"
+import {
+	account,
+	gameEntries,
+	games,
+	mergeSuggestions,
+	profiles,
+	user
+} from "../db/schema"
 import { type ApiEnv, jsonError, requireSession } from "./context"
 
 const discordAdminId = "439223656200273932"
+
+const adminDataTables = [
+	"profiles",
+	"games",
+	"gameEntries",
+	"mergeSuggestions"
+] as const
+
+const profileUpdate = z
+	.object({
+		slug: z.string().min(2).max(40).optional(),
+		displayName: z.string().min(1).max(80).optional(),
+		avatarUrl: z.string().nullable().optional(),
+		bio: z.string().max(800).optional(),
+		favoriteGenres: z.string().optional(),
+		isPublic: z.boolean().optional(),
+		steamVanity: z.string().nullable().optional(),
+		playtimeSyncedAt: z.coerce.date().nullable().optional(),
+		playtimeSyncAttemptAt: z.coerce.date().nullable().optional()
+	})
+	.strict()
+	.refine((value) => Object.keys(value).length > 0)
+
+const gameUpdate = z
+	.object({
+		title: z.string().min(1).optional(),
+		slug: z.string().min(1).optional(),
+		source: z.enum(["steam", "igdb", "manual"]).optional(),
+		steamAppId: z.number().int().nullable().optional(),
+		igdbId: z.number().int().nullable().optional(),
+		coverUrl: z.string().nullable().optional(),
+		releaseYear: z.number().int().nullable().optional()
+	})
+	.strict()
+	.refine((value) => Object.keys(value).length > 0)
+
+const gameEntryUpdate = z
+	.object({
+		userId: z.string().optional(),
+		gameId: z.string().nullable().optional(),
+		manualTitle: z.string().nullable().optional(),
+		coverUrl: z.string().nullable().optional(),
+		hidden: z.boolean().optional(),
+		importedFromSteam: z.boolean().optional(),
+		steamAppId: z.number().int().nullable().optional(),
+		playtimeMinutes: z.number().int().nullable().optional(),
+		paidPriceCents: z.number().int().nullable().optional(),
+		storeUrl: z.string().nullable().optional(),
+		funFeeling: z.number().nullable().optional(),
+		immersive: z.number().nullable().optional(),
+		variety: z.number().nullable().optional(),
+		artistry: z.number().nullable().optional(),
+		ui: z.number().nullable().optional(),
+		narrationTheme: z.number().nullable().optional(),
+		authenticity: z.number().nullable().optional(),
+		originality: z.number().nullable().optional(),
+		music: z.number().nullable().optional(),
+		effectsVocals: z.number().nullable().optional(),
+		interfaceScore: z.number().nullable().optional(),
+		control: z.number().nullable().optional(),
+		learningCurve: z.number().nullable().optional(),
+		performancePenalty: z.number().nullable().optional(),
+		badMomentPenalty: z.number().nullable().optional(),
+		inconsistencyPenalty: z.number().nullable().optional(),
+		replayabilityBonus: z.number().nullable().optional(),
+		extraPercent: z.number().nullable().optional(),
+		notes: z.string().nullable().optional()
+	})
+	.strict()
+	.refine((value) => Object.keys(value).length > 0)
+
+const mergeSuggestionUpdate = z
+	.object({
+		userId: z.string().optional(),
+		fromGameId: z.string().nullable().optional(),
+		toGameId: z.string().nullable().optional(),
+		reason: z.string().min(1).optional(),
+		status: z.enum(["open", "dismissed", "merged"]).optional()
+	})
+	.strict()
+	.refine((value) => Object.keys(value).length > 0)
 
 const getAdminUserId = async (env: Cloudflare.Env) =>
 	await getDb(env.DB)
@@ -100,6 +189,158 @@ adminRoutes.get("/admin/users/:id", async (c) => {
 				}))
 			}
 		})
+	} catch (error) {
+		const unauthorized = (error as Error).message === "Sign in required"
+		return c.json(
+			jsonError(
+				unauthorized ? "Sign in required" : "Admin access required",
+				unauthorized ? 401 : 403
+			),
+			unauthorized ? 401 : 403
+		)
+	}
+})
+
+adminRoutes.get("/admin/data/:table", async (c) => {
+	try {
+		await requireAdmin(c.env, c.req.raw.headers)
+		const table = c.req.param("table")
+		if (
+			!adminDataTables.includes(table as (typeof adminDataTables)[number])
+		)
+			return c.json(jsonError("Unknown app-data table.", 404), 404)
+		const db = getDb(c.env.DB)
+		const data =
+			table === "profiles"
+				? await db.select().from(profiles)
+				: table === "games"
+					? await db.select().from(games)
+					: table === "gameEntries"
+						? await db.select().from(gameEntries)
+						: await db.select().from(mergeSuggestions)
+		return c.json({ data })
+	} catch (error) {
+		const unauthorized = (error as Error).message === "Sign in required"
+		return c.json(
+			jsonError(
+				unauthorized ? "Sign in required" : "Admin access required",
+				unauthorized ? 401 : 403
+			),
+			unauthorized ? 401 : 403
+		)
+	}
+})
+
+adminRoutes.patch("/admin/data/:table/:id", async (c) => {
+	try {
+		await requireAdmin(c.env, c.req.raw.headers)
+		const table = c.req.param("table")
+		const id = c.req.param("id")
+		const body: unknown = await c.req.json()
+		const db = getDb(c.env.DB)
+		let row
+		switch (table) {
+			case "profiles":
+				row = await db
+					.update(profiles)
+					.set(profileUpdate.parse(body))
+					.where(eq(profiles.userId, id))
+					.returning()
+					.get()
+				break
+			case "games":
+				row = await db
+					.update(games)
+					.set(gameUpdate.parse(body))
+					.where(eq(games.id, id))
+					.returning()
+					.get()
+				break
+			case "gameEntries":
+				row = await db
+					.update(gameEntries)
+					.set(gameEntryUpdate.parse(body))
+					.where(eq(gameEntries.id, id))
+					.returning()
+					.get()
+				break
+			case "mergeSuggestions":
+				row = await db
+					.update(mergeSuggestions)
+					.set(mergeSuggestionUpdate.parse(body))
+					.where(eq(mergeSuggestions.id, id))
+					.returning()
+					.get()
+				break
+			default:
+				return c.json(jsonError("Unknown app-data table.", 404), 404)
+		}
+		return row
+			? c.json({ data: row })
+			: c.json(jsonError("Record not found.", 404), 404)
+	} catch (error) {
+		const unauthorized = (error as Error).message === "Sign in required"
+		const status = unauthorized
+			? 401
+			: error instanceof z.ZodError
+				? 400
+				: 403
+		return c.json(
+			jsonError(
+				unauthorized
+					? "Sign in required"
+					: error instanceof z.ZodError
+						? error.issues[0].message
+						: "Admin access required",
+				status
+			),
+			status
+		)
+	}
+})
+
+adminRoutes.delete("/admin/data/:table/:id", async (c) => {
+	try {
+		await requireAdmin(c.env, c.req.raw.headers)
+		const table = c.req.param("table")
+		const id = c.req.param("id")
+		const db = getDb(c.env.DB)
+		let deleted
+		switch (table) {
+			case "profiles":
+				deleted = await db
+					.delete(profiles)
+					.where(eq(profiles.userId, id))
+					.returning({ userId: profiles.userId })
+					.get()
+				break
+			case "games":
+				deleted = await db
+					.delete(games)
+					.where(eq(games.id, id))
+					.returning({ id: games.id })
+					.get()
+				break
+			case "gameEntries":
+				deleted = await db
+					.delete(gameEntries)
+					.where(eq(gameEntries.id, id))
+					.returning({ id: gameEntries.id })
+					.get()
+				break
+			case "mergeSuggestions":
+				deleted = await db
+					.delete(mergeSuggestions)
+					.where(eq(mergeSuggestions.id, id))
+					.returning({ id: mergeSuggestions.id })
+					.get()
+				break
+			default:
+				return c.json(jsonError("Unknown app-data table.", 404), 404)
+		}
+		return deleted
+			? c.json({ data: { deleted: true } })
+			: c.json(jsonError("Record not found.", 404), 404)
 	} catch (error) {
 		const unauthorized = (error as Error).message === "Sign in required"
 		return c.json(
