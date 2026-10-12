@@ -40,5 +40,24 @@ export default function AccountLayout() {
 			/>
 		)
 	}
-	return <Outlet />
+	return (
+		<>
+			{session.session.impersonatedBy && (
+				<div className="error" role="status">
+					You are impersonating another user. Changes affect their
+					account.
+					<button
+						className="secondary"
+						onClick={async () => {
+							await authClient.admin.stopImpersonating()
+							window.location.assign("/admin")
+						}}
+					>
+						Stop impersonating
+					</button>
+				</div>
+			)}
+			<Outlet />
+		</>
+	)
 }

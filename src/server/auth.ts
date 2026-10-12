@@ -33,7 +33,7 @@ const trustedOrigins = (request?: Request) => {
 	return origins
 }
 
-export function getAuth(env: Cloudflare.Env) {
+export function getAuth(env: Cloudflare.Env, adminUserIds: string[] = []) {
 	const baseURL = secret(env, "BETTER_AUTH_URL") ?? authBaseURL
 	return betterAuth({
 		baseURL,
@@ -62,7 +62,7 @@ export function getAuth(env: Cloudflare.Env) {
 			}
 		},
 		plugins: [
-			admin(),
+			admin({ adminUserIds }),
 			passkey(),
 			steamOpenID({
 				apiKey: requiredSecret(env, "STEAM_API_KEY"),

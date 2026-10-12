@@ -12,6 +12,7 @@ import { steamRoutes } from "./api/steam"
 import { storeImportRoutes } from "./api/store-imports"
 import { mediaRoutes } from "./api/media"
 import { priceRoutes } from "./api/prices"
+import { adminAuthHandler, adminRoutes } from "./api/admin"
 
 export const api = new Hono<ApiEnv>()
 
@@ -26,6 +27,8 @@ api.use("/api/*", async (c, next) => {
 })
 
 api.route("/api/auth", activityAuthRoutes)
+api.route("/api", adminRoutes)
+api.all("/api/auth/admin/*", (c) => adminAuthHandler(c.env, c.req.raw))
 api.all("/api/auth/twitch/callback", (c) => {
 	const url = new URL(c.req.url)
 	url.pathname = "/api/auth/callback/twitch"

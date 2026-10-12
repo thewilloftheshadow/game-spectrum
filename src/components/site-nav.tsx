@@ -20,9 +20,12 @@ export function SiteNav() {
 				<NavLink to="/dashboard">My Library</NavLink>
 				<NavLink to="/about">About</NavLink>
 				{session ? (
-					<NavLink to="/accounts" className={styles.account}>
-						Account
-					</NavLink>
+					<>
+						<NavLink to="/admin">Admin</NavLink>
+						<NavLink to="/accounts" className={styles.account}>
+							Account
+						</NavLink>
+					</>
 				) : !isPending ? (
 					<NavLink to="/login" className={styles.account}>
 						Sign In
