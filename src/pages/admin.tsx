@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
+import { Link, useSearchParams } from "react-router"
 import { useState } from "react"
 import { apiQueryOptions } from "~/lib/api-client"
 import { authClient } from "~/lib/auth-client"
 import type { gameEntries, profiles } from "~/server/db/schema"
+import styles from "./admin.module.css"
 
 export default function AdminPage() {
 	const users = useQuery(
@@ -17,7 +19,8 @@ export default function AdminPage() {
 			}[]
 		}>(["admin", "users"], "admin/users")
 	)
-	const [selectedId, setSelectedId] = useState("")
+	const [searchParams, setSearchParams] = useSearchParams()
+	const selectedId = searchParams.get("user") ?? ""
 	const [error, setError] = useState("")
 	const details = useQuery({
 		...apiQueryOptions<{
@@ -63,21 +66,45 @@ export default function AdminPage() {
 				</p>
 			)}
 			{users.data && (
-				<div className="section">
+				<section className="section">
 					<h2>Users ({users.data.data.length})</h2>
-					<div className="actions">
-						{users.data.data.map((item) => (
-							<button
-								className="secondary"
-								key={item.id}
-								onClick={() => setSelectedId(item.id)}
-							>
-								{item.profile?.displayName ?? item.name} ·{" "}
-								{item.email}
-							</button>
-						))}
+					<div className={styles.tableWrap}>
+						<table className={styles.table}>
+							<thead>
+								<tr>
+									<th scope="col">Name</th>
+									<th scope="col">Email</th>
+									<th scope="col">Role</th>
+									<th scope="col">Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								{users.data.data.map((item) => (
+									<tr key={item.id}>
+										<td>
+											<Link
+												to={`?user=${encodeURIComponent(item.id)}`}
+												aria-current={
+													selectedId === item.id
+														? "page"
+														: undefined
+												}
+											>
+												{item.profile?.displayName ??
+													item.name}
+											</Link>
+										</td>
+										<td>{item.email}</td>
+										<td>{item.role ?? "user"}</td>
+										<td>
+											{item.banned ? "Banned" : "Active"}
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
 					</div>
-				</div>
+				</section>
 			)}
 			{details.data && (
 				<section className="section">
@@ -185,7 +212,7 @@ export default function AdminPage() {
 											"Unable to delete user."
 									)
 								else {
-									setSelectedId("")
+									setSearchParams({})
 									await users.refetch()
 								}
 							}}
