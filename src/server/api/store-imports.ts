@@ -154,7 +154,7 @@ const epicTitle = (item: Record<string, unknown>) => {
 		metadata.mainGameItem && typeof metadata.mainGameItem === "object"
 			? (metadata.mainGameItem as Record<string, unknown>)
 			: {}
-	return (
+	const title =
 		stringValue(item.title) ??
 		stringValue(item.appTitle) ??
 		stringValue(metadata.title) ??
@@ -162,13 +162,58 @@ const epicTitle = (item: Record<string, unknown>) => {
 		stringValue(metadata.productName) ??
 		stringValue(metadata.displayName) ??
 		stringValue(mainGame.title) ??
-		stringValue(item.appName) ??
 		""
+	return title === item.appName || title === item.catalogItemId ? "" : title
+}
+
+const fetchEpicCatalogItem = async (
+	accessToken: string,
+	item: Record<string, unknown>
+) => {
+	const namespace = stringValue(item.namespace)
+	const catalogItemId = stringValue(item.catalogItemId)
+	if (!namespace || !catalogItemId) return null
+
+	const url = new URL(
+		`https://catalog-public-service-prod06.ol.epicgames.com/catalog/api/shared/namespace/${encodeURIComponent(namespace)}/bulk/items`
 	)
+	url.searchParams.set("id", catalogItemId)
+	url.searchParams.set("includeDLCDetails", "true")
+	url.searchParams.set("includeMainGameDetails", "true")
+	url.searchParams.set("country", "US")
+	const response = await fetch(url, {
+		headers: {
+			Authorization: `bearer ${accessToken}`,
+			"User-Agent": epicUserAgent
+		},
+		signal: AbortSignal.timeout(15_000)
+	})
+	if (!response.ok) return null
+	const data = await response.json().catch(() => null)
+	if (!data || typeof data !== "object") return null
+	const catalogItem = (data as Record<string, unknown>)[catalogItemId]
+	if (!catalogItem || typeof catalogItem !== "object") return null
+	const details = catalogItem as Record<string, unknown>
+	const images = Array.isArray(details.keyImages) ? details.keyImages : []
+	const cover = images.find(
+		(image) =>
+			image &&
+			typeof image === "object" &&
+			["DieselGameBoxTall", "OfferImageTall", "Thumbnail"].includes(
+				String((image as Record<string, unknown>).type)
+			)
+	)
+	return {
+		title: stringValue(details.title) ?? "",
+		coverUrl:
+			cover && typeof cover === "object"
+				? imageUrl((cover as Record<string, unknown>).url)
+				: null
+	}
 }
 
 const fetchEpicLibrary = async (accessToken: string) => {
-	const entries: { title: string }[] = []
+	const entries: { title: string; coverUrl?: string | null }[] = []
 	let cursor: string | null = null
 	for (let page = 0; page < 50; page++) {
 		const url = new URL(
@@ -194,15 +239,21 @@ const fetchEpicLibrary = async (accessToken: string) => {
 			.safeParse(data)
 		if (!response.ok || !parsed.success)
 			throw new Error("Unable to import Epic Games library.")
-		entries.push(
-			...parsed.data.records
-				.filter(
-					(item) =>
-						item.namespace !== "ue" &&
-						item.sandboxType !== "PRIVATE"
-				)
-				.map((item) => ({ title: epicTitle(item) }))
+		const records = parsed.data.records.filter(
+			(item) => item.namespace !== "ue" && item.sandboxType !== "PRIVATE"
 		)
+		for (let start = 0; start < records.length; start += 10) {
+			const chunk = records.slice(start, start + 10)
+			const catalogItems = await Promise.all(
+				chunk.map((item) => fetchEpicCatalogItem(accessToken, item))
+			)
+			entries.push(
+				...chunk.map((item, index) => ({
+					title: catalogItems[index]?.title || epicTitle(item),
+					coverUrl: catalogItems[index]?.coverUrl ?? null
+				}))
+			)
+		}
 		cursor = parsed.data.responseMetadata?.nextCursor ?? null
 		if (!cursor) break
 	}
